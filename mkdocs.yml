@@ -1,9 +1,14 @@
 site_name: Ground Truth
 site_description: Technical deep-dives grounded in real, verified data — not assumptions or documentation taken at face value.
-site_url: https://example.github.io/ground-truth/  # placeholder — update once the repo/domain is set
+site_url: https://s4sarath.github.io/ground-truth/
 
 theme:
   name: material
+  icon:
+    logo: material/target
+  font:
+    text: Inter
+    code: JetBrains Mono
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -20,7 +25,9 @@ theme:
   features:
     - navigation.instant
     - navigation.tracking
+    - navigation.top
     - content.code.copy
+    - content.tooltips
     - toc.follow
 
 extra_css:
@@ -29,8 +36,13 @@ extra_css:
 markdown_extensions:
   - tables
   - admonition
+  - attr_list
+  - md_in_html
   - pymdownx.highlight
   - pymdownx.superfences
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - toc:
       permalink: true
 

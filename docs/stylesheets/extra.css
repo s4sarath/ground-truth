@@ -5,3 +5,34 @@
   --md-primary-fg-color--dark: #1e5da3;
   --md-accent-fg-color: #eb6834;
 }
+
+/* Hero tagline on the homepage */
+.hero-tagline {
+  font-size: 1.35rem;
+  line-height: 1.5;
+  color: var(--md-default-fg-color--light);
+  max-width: 42rem;
+  margin: 1.2rem 0 2.4rem 0;
+  font-weight: 400;
+}
+.hero-tagline strong {
+  color: var(--md-default-fg-color);
+  font-weight: 700;
+}
+
+/* Grid card polish: subtle lift on hover, accent-colored arrow link */
+.md-typeset .grid.cards > ul > li,
+.md-typeset .grid.cards > ol > li {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border-radius: 0.6rem;
+}
+.md-typeset .grid.cards > ul > li:hover,
+.md-typeset .grid.cards > ol > li:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  border-color: var(--md-primary-fg-color);
+}
+.md-typeset .grid.cards a {
+  color: var(--md-accent-fg-color);
+  font-weight: 600;
+}
