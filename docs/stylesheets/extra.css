@@ -1,0 +1,7 @@
+/* Ground Truth brand palette — matches the charts/diagrams in post content */
+[data-md-color-primary="custom"] {
+  --md-primary-fg-color: #2a78d6;
+  --md-primary-fg-color--light: #4a8ede;
+  --md-primary-fg-color--dark: #1e5da3;
+  --md-accent-fg-color: #eb6834;
+}

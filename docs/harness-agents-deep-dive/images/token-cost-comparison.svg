@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="460" viewBox="0 0 760 460">
+<rect width="760" height="460" fill="#fcfcfb"/>
+<text x="60" y="34" font-family="Helvetica,Arial,sans-serif" font-size="22" font-weight="700" fill="#0b0b0b">Same LLM, same two questions, wildly different token cost</text>
+<text x="60" y="58" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#52514e">Total tokens billed across all real agent LLM calls per query (title-generation calls excluded for fairness)</text>
+<line x1="60" y1="390.0" x2="720" y2="390.0" stroke="#e4e2dc" stroke-width="1"/>
+<text x="50" y="394.0" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#52514e">0</text>
+<line x1="60" y1="315.0" x2="720" y2="315.0" stroke="#e4e2dc" stroke-width="1"/>
+<text x="50" y="319.0" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#52514e">18,054</text>
+<line x1="60" y1="240.0" x2="720" y2="240.0" stroke="#e4e2dc" stroke-width="1"/>
+<text x="50" y="244.0" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#52514e">36,108</text>
+<line x1="60" y1="165.0" x2="720" y2="165.0" stroke="#e4e2dc" stroke-width="1"/>
+<text x="50" y="169.0" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#52514e">54,161</text>
+<line x1="60" y1="90.0" x2="720" y2="90.0" stroke="#e4e2dc" stroke-width="1"/>
+<text x="50" y="94.0" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#52514e">72,215</text>
+<rect x="88.0" y="368.9" width="49.5" height="21.1" rx="4" ry="4" fill="#2a78d6"/>
+<text x="112.8" y="360.9" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="600" fill="#0b0b0b">5,089</text>
+<rect x="147.4" y="342.8" width="49.5" height="47.2" rx="4" ry="4" fill="#eb6834"/>
+<text x="172.2" y="334.8" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="600" fill="#0b0b0b">11,370</text>
+<text x="142.5" y="412" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#0b0b0b">Pi</text>
+<rect x="253.1" y="333.8" width="49.5" height="56.2" rx="4" ry="4" fill="#2a78d6"/>
+<text x="277.8" y="325.8" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="600" fill="#0b0b0b">13,534</text>
+<rect x="312.4" y="90.0" width="49.5" height="300.0" rx="4" ry="4" fill="#eb6834"/>
+<text x="337.2" y="82.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="600" fill="#0b0b0b">72,215</text>
+<text x="307.5" y="412" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#0b0b0b">DeepSeek</text>
+<text x="307.5" y="427" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#0b0b0b">Harness</text>
+<rect x="418.1" y="346.0" width="49.5" height="44.0" rx="4" ry="4" fill="#2a78d6"/>
+<text x="442.8" y="338.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="600" fill="#0b0b0b">10,594</text>
+<rect x="477.4" y="251.9" width="49.5" height="138.1" rx="4" ry="4" fill="#eb6834"/>
+<text x="502.2" y="243.9" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="600" fill="#0b0b0b">33,244</text>
+<text x="472.5" y="412" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#0b0b0b">OpenCode</text>
+<rect x="583.0" y="317.9" width="49.5" height="72.1" rx="4" ry="4" fill="#2a78d6"/>
+<text x="607.8" y="309.9" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="600" fill="#0b0b0b">17,346</text>
+<rect x="642.5" y="227.5" width="49.5" height="162.5" rx="4" ry="4" fill="#eb6834"/>
+<text x="667.2" y="219.5" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" font-weight="600" fill="#0b0b0b">39,122</text>
+<text x="637.5" y="412" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#0b0b0b">Hermes</text>
+<line x1="60" y1="390" x2="720" y2="390" stroke="#52514e" stroke-width="1.5"/>
+<rect x="500" y="22" width="12" height="12" rx="3" fill="#2a78d6"/>
+<text x="518" y="32" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#0b0b0b">"What is the square of 13"</text>
+<rect x="610" y="22" width="12" height="12" rx="3" fill="#eb6834"/>
+<text x="628" y="32" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#0b0b0b">"List all files in this directory"</text>
+</svg>

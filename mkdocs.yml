@@ -1,0 +1,39 @@
+site_name: Ground Truth
+site_description: Technical deep-dives grounded in real, verified data — not assumptions or documentation taken at face value.
+site_url: https://example.github.io/ground-truth/  # placeholder — update once the repo/domain is set
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - content.code.copy
+    - toc.follow
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - tables
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Anatomy of an AI Coding Agent: harness-agents-deep-dive/anatomy-of-an-ai-coding-agent.md

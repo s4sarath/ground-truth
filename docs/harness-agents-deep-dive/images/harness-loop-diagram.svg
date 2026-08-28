@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="480" viewBox="0 0 900 480">
+<rect width="900" height="480" fill="#fcfcfb"/>
+<text x="450" y="36" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="22" font-weight="700" fill="#0b0b0b">The Harness Loop — the one thing every agent harness has in common</text>
+<text x="450" y="58" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#52514e">pi, DeepSeek Harness, OpenCode, and Hermes all implement this exact loop underneath very different architectures</text>
+<defs>
+<marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+<polygon points="0 0, 10 3.5, 0 7" fill="#52514e"/>
+</marker>
+</defs>
+<rect x="30" y="110" width="140" height="70" rx="10" ry="10" fill="#52514e"/>
+<text x="100.0" y="141.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="700" fill="#ffffff">You</text>
+<text x="100.0" y="161.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#ffffff" opacity="0.85">type a prompt</text>
+<rect x="230" y="110" width="190" height="70" rx="10" ry="10" fill="#2a78d6"/>
+<text x="325.0" y="141.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="700" fill="#ffffff">Harness</text>
+<text x="325.0" y="161.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#ffffff" opacity="0.85">adds system prompt
++ tool list</text>
+<rect x="480" y="110" width="160" height="70" rx="10" ry="10" fill="#eb6834"/>
+<text x="560.0" y="141.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="700" fill="#ffffff">LLM</text>
+<text x="560.0" y="161.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#ffffff" opacity="0.85">reasons over the
+full context</text>
+<line x1="170" y1="145" x2="230" y2="145" stroke="#52514e" stroke-width="2" marker-end="url(#arrowhead)"/>
+<text x="200.0" y="137.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#52514e">prompt</text>
+<line x1="420" y1="145" x2="480" y2="145" stroke="#52514e" stroke-width="2" marker-end="url(#arrowhead)"/>
+<text x="450.0" y="137.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#52514e">request</text>
+<polygon points="780.0,105 860,145.0 780.0,185 700,145.0" fill="#1baf7a"/>
+<text x="780.0" y="141.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#ffffff">Tool call?</text>
+<text x="780.0" y="159.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#ffffff">stop-reason check</text>
+<line x1="640" y1="145" x2="700" y2="145" stroke="#52514e" stroke-width="2" marker-end="url(#arrowhead)"/>
+<rect x="700" y="260" width="160" height="70" rx="10" ry="10" fill="#eb6834"/>
+<text x="780.0" y="291.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="700" fill="#ffffff">Tool executes</text>
+<text x="780.0" y="311.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#ffffff" opacity="0.85">real command on
+your machine</text>
+<path d="M 780 260 L 780 220" fill="none" stroke="#52514e" stroke-width="2" marker-end="url(#arrowhead)"/>
+<text x="795" y="240" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#52514e">YES</text>
+<path d="M 700 295 Q 500 320 480 180" fill="none" stroke="#52514e" stroke-width="2" marker-end="url(#arrowhead)"/>
+<text x="560" y="330" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#52514e">result fed back — loop again</text>
+<rect x="700" y="30" width="160" height="60" rx="10" ry="10" fill="#2a78d6"/>
+<text x="780.0" y="56.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="700" fill="#ffffff">Final answer</text>
+<text x="780.0" y="76.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#ffffff" opacity="0.85">stopReason: "stop"</text>
+<path d="M 780 105 L 780 90" fill="none" stroke="#52514e" stroke-width="2" marker-end="url(#arrowhead)"/>
+<text x="810" y="80" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#52514e">NO</text>
+<path d="M 700 55 Q 400 15 200 145" fill="none" stroke="#52514e" stroke-width="2" marker-end="url(#arrowhead)"/>
+<text x="450" y="12" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#52514e">answer shown to you</text>
+<rect x="30" y="400" width="840" height="60" rx="8" fill="none" stroke="#c3c2b7" stroke-width="1"/>
+<text x="450" y="425" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#0b0b0b">The loop repeats as many times as the model needs tools.</text>
+<text x="450" y="445" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#52514e">One question needed 1 loop in our tests. Another needed up to 4 — same model, different harness design.</text>
+</svg>

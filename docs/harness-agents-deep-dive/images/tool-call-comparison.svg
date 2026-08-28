@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="380" viewBox="0 0 760 380">
+<rect width="760" height="380" fill="#fcfcfb"/>
+<text x="60" y="34" font-family="Helvetica,Arial,sans-serif" font-size="22" font-weight="700" fill="#0b0b0b">How many tool calls to list one directory?</text>
+<text x="60" y="58" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#52514e">Tool calls made while answering “List all files in this directory” — same question, same model</text>
+<line x1="60" y1="320.0" x2="720" y2="320.0" stroke="#e4e2dc" stroke-width="1"/>
+<text x="50" y="324.0" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#52514e">0</text>
+<line x1="60" y1="262.5" x2="720" y2="262.5" stroke="#e4e2dc" stroke-width="1"/>
+<text x="50" y="266.5" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#52514e">0.9</text>
+<line x1="60" y1="205.0" x2="720" y2="205.0" stroke="#e4e2dc" stroke-width="1"/>
+<text x="50" y="209.0" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#52514e">1.7</text>
+<line x1="60" y1="147.5" x2="720" y2="147.5" stroke="#e4e2dc" stroke-width="1"/>
+<text x="50" y="151.5" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#52514e">2.6</text>
+<line x1="60" y1="90.0" x2="720" y2="90.0" stroke="#e4e2dc" stroke-width="1"/>
+<text x="50" y="94.0" text-anchor="end" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#52514e">3.4</text>
+<rect x="107.8" y="253.3" width="69.3" height="66.7" rx="4" ry="4" fill="#2a78d6"/>
+<text x="142.5" y="243.3" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="700" fill="#0b0b0b">1 call</text>
+<text x="142.5" y="342" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#0b0b0b">Pi</text>
+<rect x="272.9" y="120.0" width="69.3" height="200.0" rx="4" ry="4" fill="#2a78d6"/>
+<text x="307.5" y="110.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="700" fill="#0b0b0b">3 call</text>
+<text x="307.5" y="342" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#0b0b0b">DeepSeek
+Harness</text>
+<rect x="437.9" y="186.7" width="69.3" height="133.3" rx="4" ry="4" fill="#2a78d6"/>
+<text x="472.5" y="176.7" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="700" fill="#0b0b0b">2 call</text>
+<text x="472.5" y="342" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#0b0b0b">OpenCode</text>
+<rect x="602.9" y="253.3" width="69.3" height="66.7" rx="4" ry="4" fill="#2a78d6"/>
+<text x="637.5" y="243.3" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="14" font-weight="700" fill="#0b0b0b">1 call</text>
+<text x="637.5" y="342" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#0b0b0b">Hermes</text>
+<line x1="60" y1="320" x2="720" y2="320" stroke="#52514e" stroke-width="1.5"/>
+</svg>
