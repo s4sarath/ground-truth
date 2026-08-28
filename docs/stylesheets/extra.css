@@ -1,38 +1,198 @@
-/* Ground Truth brand palette — matches the charts/diagrams in post content */
-[data-md-color-primary="custom"] {
-  --md-primary-fg-color: #2a78d6;
-  --md-primary-fg-color--light: #4a8ede;
-  --md-primary-fg-color--dark: #1e5da3;
-  --md-accent-fg-color: #eb6834;
+/* ============================================================
+   Ground Truth — visual system
+   Palette: validated categorical set (blue/orange/aqua) shared
+   with every chart and diagram in post content, so site chrome
+   and embedded data visuals read as one system.
+   ============================================================ */
+
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap");
+
+:root {
+  --gt-blue: #2a78d6;
+  --gt-blue-dark: #1e5da3;
+  --gt-orange: #eb6834;
+  --gt-aqua: #1baf7a;
+  --gt-red: #e34948;
 }
 
-/* Hero tagline on the homepage */
+/* ---- Palette: refined light surface, not stark white ---- */
+[data-md-color-scheme="default"] {
+  --md-default-bg-color: #fcfcfb;
+  --md-default-fg-color: #17161a;
+  --md-default-fg-color--light: #52514e;
+  --md-default-fg-color--lighter: #8a8980;
+  --md-typeset-a-color: var(--gt-blue);
+}
+
+[data-md-color-primary="custom"] {
+  --md-primary-fg-color: var(--gt-blue);
+  --md-primary-fg-color--light: #4a8ede;
+  --md-primary-fg-color--dark: var(--gt-blue-dark);
+  --md-accent-fg-color: var(--gt-orange);
+}
+
+/* ---- Typography ---- */
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3 {
+  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.md-typeset h1 {
+  font-size: 2.4rem;
+  line-height: 1.15;
+  margin-bottom: 0.6em;
+}
+.md-typeset h2 {
+  font-size: 1.55rem;
+  border-top: 1px solid var(--md-default-fg-color--lightest, #e4e2dc);
+  padding-top: 1.6rem;
+  margin-top: 2.2rem;
+}
+.md-typeset h3 {
+  font-size: 1.2rem;
+  color: var(--gt-blue-dark);
+}
+.md-typeset {
+  font-size: 0.78rem;
+  line-height: 1.7;
+}
+.md-typeset p {
+  margin: 1em 0;
+}
+.md-typeset strong {
+  color: var(--md-default-fg-color);
+}
+
+/* ---- Hero tagline on the homepage ---- */
 .hero-tagline {
   font-size: 1.35rem;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--md-default-fg-color--light);
   max-width: 42rem;
   margin: 1.2rem 0 2.4rem 0;
   font-weight: 400;
 }
 .hero-tagline strong {
-  color: var(--md-default-fg-color);
+  color: var(--gt-blue-dark);
   font-weight: 700;
 }
 
-/* Grid card polish: subtle lift on hover, accent-colored arrow link */
+/* ---- Grid cards: subtle lift, accent link, no harsh borders ---- */
 .md-typeset .grid.cards > ul > li,
 .md-typeset .grid.cards > ol > li {
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  border-radius: 0.6rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0.75rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
 }
 .md-typeset .grid.cards > ul > li:hover,
 .md-typeset .grid.cards > ol > li:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-  border-color: var(--md-primary-fg-color);
+  box-shadow: 0 10px 24px rgba(42, 120, 214, 0.14);
+  border-color: var(--gt-blue);
 }
 .md-typeset .grid.cards a {
-  color: var(--md-accent-fg-color);
+  color: var(--gt-orange);
   font-weight: 600;
+}
+.md-typeset .grid.cards svg {
+  color: var(--gt-blue);
+}
+
+/* ---- Blockquotes: colored rail instead of default gray ---- */
+.md-typeset blockquote {
+  border-left: 4px solid var(--gt-blue);
+  background: rgba(42, 120, 214, 0.045);
+  border-radius: 0 0.4rem 0.4rem 0;
+  padding: 0.9rem 1.2rem;
+  color: var(--md-default-fg-color--light);
+}
+
+/* ---- Tables: soft header tint, breathing room, no heavy grid ---- */
+.md-typeset table:not([class]) {
+  border: none;
+  border-radius: 0.6rem;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+  font-size: 0.72rem;
+}
+.md-typeset table:not([class]) th {
+  background: rgba(42, 120, 214, 0.08);
+  color: var(--gt-blue-dark);
+  font-weight: 700;
+  border: none;
+}
+.md-typeset table:not([class]) td {
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+.md-typeset table:not([class]) tr:hover {
+  background: rgba(42, 120, 214, 0.035);
+}
+
+/* ---- Admonitions: brand-tuned instead of Material defaults ---- */
+.md-typeset .admonition.note,
+.md-typeset .admonition.info {
+  border-color: var(--gt-blue);
+}
+.md-typeset .note > .admonition-title,
+.md-typeset .info > .admonition-title {
+  background-color: rgba(42, 120, 214, 0.1);
+}
+.md-typeset .note > .admonition-title::before,
+.md-typeset .info > .admonition-title::before {
+  background-color: var(--gt-blue);
+}
+.md-typeset .admonition.danger {
+  border-color: var(--gt-red);
+}
+.md-typeset .danger > .admonition-title {
+  background-color: rgba(227, 73, 72, 0.1);
+}
+.md-typeset .danger > .admonition-title::before {
+  background-color: var(--gt-red);
+}
+.md-typeset .admonition.warning {
+  border-color: var(--gt-orange);
+}
+.md-typeset .warning > .admonition-title {
+  background-color: rgba(235, 104, 52, 0.1);
+}
+.md-typeset .warning > .admonition-title::before {
+  background-color: var(--gt-orange);
+}
+.md-typeset .admonition.tip,
+.md-typeset .admonition.success {
+  border-color: var(--gt-aqua);
+}
+.md-typeset .tip > .admonition-title,
+.md-typeset .success > .admonition-title {
+  background-color: rgba(27, 175, 122, 0.1);
+}
+.md-typeset .tip > .admonition-title::before,
+.md-typeset .success > .admonition-title::before {
+  background-color: var(--gt-aqua);
+}
+
+/* ---- Images: soft frame so SVG diagrams don't float on bare white ---- */
+.md-typeset img {
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+/* ---- Code blocks: slightly warmer than pure black/white ---- */
+.md-typeset code {
+  background: rgba(42, 120, 214, 0.08);
+  color: var(--gt-blue-dark);
+  border-radius: 0.25rem;
+}
+.md-typeset pre code {
+  background: none;
+  color: inherit;
+}
+
+/* ---- Header bar: keep brand blue but slightly deeper for contrast with white content ---- */
+.md-header {
+  background-color: var(--gt-blue-dark);
 }

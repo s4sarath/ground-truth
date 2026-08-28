@@ -6,11 +6,11 @@
 
 <div class="grid cards" markdown>
 
--   :material-robot-outline: **Anatomy of an AI Coding Agent**
+-   :material-robot-outline: **What Is a Harness? Why an LLM Alone Can't Be a Coding Agent**
 
     ---
 
-    We traced the literal request/response wire data across four AI coding agent harnesses — pi, DeepSeek Harness, OpenCode, and Hermes — same underlying model, same two questions, every number and diagram verified against the source.
+    What a "harness" actually is, why the word is so confusingly overloaded, what happens when you give a model zero tools, and why a harness alone still doesn't save a weak model — then the receipts: four real harnesses traced wire-byte by wire-byte against the same model and the same two questions.
 
     [:octicons-arrow-right-24: Read the post](harness-agents-deep-dive/anatomy-of-an-ai-coding-agent.md)
 

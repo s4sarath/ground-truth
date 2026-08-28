@@ -1,31 +1,72 @@
-# Anatomy of an AI Coding Agent: What Really Happens Inside Pi, DeepSeek Harness, OpenCode, and Hermes
+# What Is a Harness? Why an LLM Alone Can't Be a Coding Agent
 
 You type a prompt into an AI coding assistant. A few seconds later, an answer appears. Maybe it read a file first. Maybe it ran a command. Then it's just... there — text, in your terminal, as if it arrived by magic.
 
-It didn't. Between your keystroke and that answer sits a surprising amount of machinery: a system prompt you never see, a list of tools the model is allowed to use, a loop that might call the model two, three, or four separate times before it's done, and — in three of the four tools we looked at — a completely invisible LLM call that exists only to name your conversation.
+It didn't. The thing doing the magic has a name almost nobody outside the field uses correctly, if they use it at all: a **harness**. This post is about that word — what it actually means, why an LLM is genuinely useless without one, why a harness alone still isn't enough, and then — because we don't like making claims we haven't checked — a full trace of four *real* open-source harnesses (pi, DeepSeek Harness, OpenCode, Hermes) pointed at the *same* model, asked the *same* two questions, with every byte of what actually got sent and returned read and verified.
 
-We didn't want to take any of that on faith. So we picked four open-source "harnesses" — the software that wraps a raw language model and turns it into a coding agent — pointed all four at the *exact same* underlying model, asked each one the *exact same* two questions, and read every byte of what actually got sent and returned. No documentation-trusting, no vendor claims taken at face value. Where a claim looked wrong, we corrected it in the open rather than quietly fixing it.
-
-This post is the consolidated result: what a "harness" actually is, what's universal across all four designs, and where they genuinely diverge in ways that cost you real tokens and real money.
-
-> **Who this is for**: if you've ever wondered what's actually happening when you use Claude Code, Cursor, or any AI coding tool, the first two sections are written for you — no prior knowledge assumed. If you build or evaluate these tools yourself, the deep-dive sections and comparison data are the payload.
+> **Who this is for**: the next few sections assume nothing — if "harness" is a new word to you, start there. If you already know what a harness is and want the receipts — real trace data across four implementations — jump to [The experiment](#the-experiment).
 
 ---
 
-## First, what even *is* a "harness"?
+## What is a "harness," actually?
 
-Think of the large language model — GPT, Claude, DeepSeek, Nemotron, whatever — as an engine. It's extremely good at one thing: given some text, predict what text should come next. On its own, an engine can't drive anywhere. It needs a car built around it: a steering wheel, a dashboard, wheels that actually touch the road.
+Think of the large language model — GPT, Claude, DeepSeek, Nemotron, whatever — as an engine. It's extremely good at exactly one thing: given some text, predict what text should come next. That's it. That's the whole capability. An engine, on its own, can't drive anywhere — it needs a car built around it: a steering wheel, a dashboard, wheels that actually touch the road.
 
-A **coding agent harness** is that car. It's the software that:
+A **harness** is that car. It's the software layer that:
 
 1. Takes your plain-English request and wraps it with instructions the model needs but you never typed (who it is, what tools it has, what directory it's working in)
 2. Gives the model a defined set of **tools** — read a file, run a shell command, edit code — that it can ask to use
 3. Runs a **loop**: send the request, see if the model wants to use a tool, actually run that tool for real, feed the result back, and repeat until the model has a final answer
 4. Hands you back plain text
 
-Every one of the four harnesses in this post — despite being built in different languages, by different teams, with completely different philosophies — implements exactly this loop underneath. That convergence is itself one of the most interesting findings here.
+!!! note "In plain terms"
+    The model can only ever do one thing: guess the next word. It cannot, by itself, open a file on your laptop, run a command, or know today's date. A harness is the piece of software standing between the model and your actual computer, translating "I'd like to run `ls`" into a real command that really runs, then translating the real result back into words the model can read.
+
+## Why "harness" is such a confusing word
+
+Ask five people in this space to define "harness" and you'll likely get five different answers, because the word gets used loosely for several distinct things at once:
+
+- Sometimes it means the **whole CLI tool** you install and run (Claude Code, pi, Hermes)
+- Sometimes it means specifically the **loop** — the send/check-for-tool-call/execute/repeat mechanism described above — as distinct from the UI wrapped around it
+- Sometimes people say "agent" or "framework" or "scaffold" or "runtime" instead, meaning roughly the same thing
+- And two of the four tools traced in this post — pi and OpenCode — never use the word "harness" to describe themselves at all; **DeepSeek Harness** even put the word in its own name
+
+For this post, "harness" means the whole software layer between the raw model API and a working coding tool — the numbered list above, end to end. If you see another term used elsewhere for roughly the same idea, that's not a contradiction; the ecosystem genuinely hasn't converged on one word yet.
+
+## What happens with no harness at all
+
+This is the part worth actually seeing, not just being told. Take the exact same question we ask every harness later in this post — *"list all files in this directory"* — and send it to a raw model API with **no tools attached at all**. No `bash`, no `read`, nothing:
+
+```json
+{
+  "model": "some-llm",
+  "messages": [
+    {"role": "user", "content": "List all files in this directory."}
+  ]
+}
+```
+
+!!! danger "What actually happens"
+    One of two things, and both are bad. Either the model correctly says *"I don't have access to your filesystem"* — a dead end, no matter how good the model is — or, worse, a confident model **invents a plausible-looking file listing anyway**, because next-token prediction has no built-in concept of "I actually know this" versus "this sounds like the kind of thing that goes here." It isn't lying on purpose. It's doing exactly what it was built to do — predict likely-sounding text — applied to a question that plain text prediction can never actually answer.
+
+That second failure mode is the one that should worry you more. A refusal is at least honest. A **confidently wrong, fabricated directory listing** looks identical to a correct one until you check it against reality — and checking against reality is precisely the one thing a harness exists to do that a raw model call cannot.
+
+## Why this matters
+
+A harness's entire reason for existing is to convert "plausible-sounding text" into "verified, real actions with real results fed back into the conversation." Every tool call in this post — `bash ls -la`, `glob("*")`, `read()` on a directory — is the harness taking the model's *request* to do something and actually doing it for real, then handing the *real* result back. Without that loop, you don't have an agent. You have autocomplete with extra steps, guessing what a file listing probably looks like instead of reading one.
+
+## A harness doesn't fix a weak model
+
+Here's the part that surprises people once they understand the first half of this: **giving a weak or older model a harness does not automatically make it a good agent.** A harness supplies the *capability* to call tools — it doesn't supply the *judgment* to call the right one, with the right arguments, and to reason correctly about what comes back. Those are still entirely the model's job.
+
+!!! warning "This isn't theoretical — we caught it live"
+    Later in this post, the exact same model, given the exact same question, called a wrong tool with no arguments and confidently reported the contents of the wrong directory — not because the harness was broken, but because the model incorrectly inferred where it was from an unrelated line of context and never double-checked. A different harness's tool made a *different* model call it recursively across an entire 130-package repository, returning 70,907 results for a question that needed maybe thirty. Same underlying capability (a harness, tools, a loop) — two very different failure modes, both caused by the model's own reasoning, not the plumbing around it.
+
+A harness is necessary. It is not sufficient. That distinction — capability versus judgment — is the thread running through everything that follows.
 
 ![Diagram of the universal harness loop: user prompt goes to the harness, which adds a system prompt and tool list before sending to the LLM. The LLM either returns a final answer or requests a tool call; tool calls execute for real and feed results back into another LLM call, looping until the model stops requesting tools.](images/harness-loop-diagram.svg)
+
+Every one of the four harnesses traced below — despite being built in different languages, by different teams, with completely different philosophies — implements exactly this loop underneath. That convergence, on its own, is one of the more interesting findings here.
 
 ## The experiment
 

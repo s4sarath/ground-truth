@@ -48,4 +48,4 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Anatomy of an AI Coding Agent: harness-agents-deep-dive/anatomy-of-an-ai-coding-agent.md
+  - What Is a Harness?: harness-agents-deep-dive/anatomy-of-an-ai-coding-agent.md
