@@ -15,13 +15,25 @@
   --gt-red: #e34948;
 }
 
-/* ---- Palette: refined light surface, not stark white ---- */
+/* ---- Palette: light mode is a warm, muted paper tone — not stark white ---- */
 [data-md-color-scheme="default"] {
-  --md-default-bg-color: #fcfcfb;
-  --md-default-fg-color: #17161a;
-  --md-default-fg-color--light: #52514e;
-  --md-default-fg-color--lighter: #8a8980;
+  --md-default-bg-color: #eeece4;
+  --gt-content-surface: #f8f7f2; /* cards/code/tables sit slightly lighter than the page for gentle depth */
+  --md-default-fg-color: #201f1c;
+  --md-default-fg-color--light: #55534c;
+  --md-default-fg-color--lighter: #8c897d;
   --md-typeset-a-color: var(--gt-blue);
+}
+
+/* ---- Palette: dark mode is a warm charcoal — not near-black ---- */
+[data-md-color-scheme="slate"] {
+  --md-default-bg-color: #211f1c;
+  --gt-content-surface: #2a2825;
+  --md-default-fg-color: #ece9e1;
+  --md-default-fg-color--light: #b8b5aa;
+  --md-default-fg-color--lighter: #8c897d;
+  --md-typeset-a-color: #7db3ef;
+  --md-primary-fg-color: #2a2825;
 }
 
 [data-md-color-primary="custom"] {
@@ -40,8 +52,8 @@
   letter-spacing: -0.01em;
 }
 .md-typeset h1 {
-  font-size: 2.4rem;
-  line-height: 1.15;
+  font-size: 1.85rem;
+  line-height: 1.2;
   margin-bottom: 0.6em;
 }
 .md-typeset h2 {
@@ -82,6 +94,7 @@
 /* ---- Grid cards: subtle lift, accent link, no harsh borders ---- */
 .md-typeset .grid.cards > ul > li,
 .md-typeset .grid.cards > ol > li {
+  background: var(--gt-content-surface);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 0.75rem;
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
@@ -103,7 +116,7 @@
 /* ---- Blockquotes: colored rail instead of default gray ---- */
 .md-typeset blockquote {
   border-left: 4px solid var(--gt-blue);
-  background: rgba(42, 120, 214, 0.045);
+  background: var(--gt-content-surface);
   border-radius: 0 0.4rem 0.4rem 0;
   padding: 0.9rem 1.2rem;
   color: var(--md-default-fg-color--light);
@@ -111,6 +124,7 @@
 
 /* ---- Tables: soft header tint, breathing room, no heavy grid ---- */
 .md-typeset table:not([class]) {
+  background: var(--gt-content-surface);
   border: none;
   border-radius: 0.6rem;
   overflow: hidden;
@@ -183,16 +197,23 @@
 
 /* ---- Code blocks: slightly warmer than pure black/white ---- */
 .md-typeset code {
-  background: rgba(42, 120, 214, 0.08);
+  background: rgba(42, 120, 214, 0.1);
   color: var(--gt-blue-dark);
   border-radius: 0.25rem;
+}
+[data-md-color-scheme="slate"] .md-typeset code {
+  color: #7db3ef;
 }
 .md-typeset pre code {
   background: none;
   color: inherit;
 }
+.md-typeset .highlight pre,
+.md-typeset .highlighttable {
+  background: var(--gt-content-surface);
+}
 
-/* ---- Header bar: keep brand blue but slightly deeper for contrast with white content ---- */
+/* ---- Header bar: keep brand blue but slightly deeper for contrast with page ---- */
 .md-header {
   background-color: var(--gt-blue-dark);
 }
