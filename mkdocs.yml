@@ -4,6 +4,7 @@ site_url: https://s4sarath.github.io/ground-truth/
 
 theme:
   name: material
+  custom_dir: overrides
   icon:
     logo: material/target
   font:
