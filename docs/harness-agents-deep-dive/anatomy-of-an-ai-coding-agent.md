@@ -22,6 +22,9 @@ A **harness** is that car. It's the software layer that:
 !!! note "In plain terms"
     The model can only ever do one thing: guess the next word. It cannot, by itself, open a file on your laptop, run a command, or know today's date. A harness is the piece of software standing between the model and your actual computer, translating "I'd like to run `ls`" into a real command that really runs, then translating the real result back into words the model can read.
 
+!!! tip "You've probably used one already"
+    If you've used Claude Code, Cursor, or GitHub Copilot's agent mode, you've used a harness — you just weren't shown the word. "Claude," for instance, is really two separable things: the model (Opus, Sonnet, Fable, Haiku — the engine) and **Claude Code** (the harness — the CLI wrapping it with a system prompt, a tool list, and this exact loop). Everything traced in this post about pi, dsh, OpenCode, and Hermes is the same machinery running underneath whatever coding assistant you already reach for daily — including, quite possibly, the one that helped write this sentence.
+
 ## Why "harness" is such a confusing word
 
 Ask five people in this space to define "harness" and you'll likely get five different answers, because the word gets used loosely for several distinct things at once:
@@ -249,6 +252,8 @@ All four packages were otherwise complete and functionally equivalent — every 
 4. **Correctness and efficiency are separate axes.** The harness that used the fewest tool calls (Hermes, tied with pi at 1) produced the wrong answer. Don't judge a harness by call count alone — check what actually happened.
 5. **Tracing at the source level catches real bugs that black-box testing won't.** We didn't set out to find the Hermes cwd bug — it fell out of doing the same rigorous trace-and-verify pass we'd already done for the other three.
 6. **A harness having a tool doesn't mean the model will use it.** Three of four harnesses shipped subagent/delegation tooling by default; on a task hard enough to justify it, zero used it. Capability and judgment are genuinely separate questions — confirmed with real numbers this time, not just argued from principle.
+
+**If you're actually choosing one right now**: pi if you want the smallest surface area and don't mind doing your own tracing when something's unclear; OpenCode if raw token/time efficiency matters most, as long as you're fine running from source rather than the compiled global install; DeepSeek Harness if deep built-in observability matters more than raw cost and you can tolerate a heavier default tool catalog; and hold off on Hermes for anything filesystem-sensitive until its cwd-tracking bug is fixed — its own "it worked" summaries cannot currently be trusted at face value.
 
 ---
 
