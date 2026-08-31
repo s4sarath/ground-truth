@@ -7,9 +7,7 @@ theme:
   custom_dir: overrides
   icon:
     logo: material/target
-  font:
-    text: Inter
-    code: JetBrains Mono
+  font: false
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
