@@ -1,6 +1,8 @@
-# Ground Truth
+# Ground Truth {: .gt-site-title }
 
-<p class="hero-tagline" markdown>Technical deep-dives grounded in **real, verified data** — not assumptions or documentation taken at face value.</p>
+<p class="hero-subtitle">Tracing how software actually works</p>
+
+<p class="hero-tagline" markdown>Technical deep-dives grounded in **real, verified data** — not assumptions or documentation taken at face value. We instrument real source code, trace real request/response payloads, and correct ourselves in the open when the evidence says otherwise.</p>
 
 ## Posts
 
