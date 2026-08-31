@@ -213,6 +213,34 @@ Tool-call count is not simply "fewer is better" here — Hermes's single call pr
 
 ---
 
+## A harder test: does having a tool mean using it?
+
+Everything above used two deliberately simple questions. To actually test the capability-vs-judgment distinction from earlier in this post, we gave all four harnesses a genuinely hard task — build a multi-file Python package (a state machine, two pluggable payment providers, two pluggable notifiers, a CLI, tests, packaging) — using the same model, the exact same prompt, in a clean directory for each. Recall that three of the four ship delegation/subagent tooling by default. This was the real test of whether that capability gets used once a task is hard enough to justify it, or whether every harness just runs the same plain loop from the top of this post regardless of what else is sitting in its toolbox.
+
+![Comparison diagram: three harnesses (DeepSeek Harness, OpenCode, Hermes) had delegation tools available by default; zero of them were actually invoked for the complex build task, all four solved it inside one flat loop instead.](images/capability-vs-usage.svg)
+
+*Every single harness solved the entire task inside one flat loop.* Zero delegation calls, across all three harnesses that had the tooling for it — the same ReAct-style pattern from the diagram at the top of this post, just repeated dozens of times instead of once or twice.
+
+| | Pi | DeepSeek Harness | OpenCode | Hermes |
+|---|---|---|---|---|
+| LLM calls | 44 | 77 | **16** | 56 |
+| Tool calls | 43 | 76 | 29 | 55 |
+| Total tokens | 599,450 | **2,750,020** | **223,982** | 1,807,554 |
+| Wall-clock time | ~2m 37s | ~4m 30s | **~59s** | ~4m 27s |
+| Files landed in the right place? | ✅ | ✅ | ✅ | ❌ |
+
+*OpenCode finished in under a minute using roughly a twelfth of DeepSeek Harness's token spend, for an equivalent finished package* — the strongest evidence yet that call count, not per-call efficiency, is the dominant cost lever once a task runs long. DeepSeek Harness's own tool log explains why: 48 of its 76 tool calls were bare `bash` commands (exploring, `mkdir -p`, shell-based file writes) rather than its own structured `write`/`edit` tools — a shell-heavy style that needed nearly twice pi's turn count for the same deliverable, letting its already-large system prompt (26,305 chars) compound across 77 resends instead of a handful.
+
+!!! danger "A second, more serious Hermes bug"
+    Hermes's own final summary said the package was "fully implemented," listing file paths matching the request exactly — and none of it was true. The files actually landed in the **user's home directory**, not the target folder, despite the session's own recorded metadata listing the correct path. Same class of bug as the missing-cwd issue documented earlier in this post, now confirmed a second time on a much bigger task — and the sharpest illustration in this whole post of why "the model said it worked" is never sufficient on its own.
+
+!!! note "One honest note on our own methodology"
+    Midway through this test we found a mistake in our own setup, not a harness bug: a shell flag change accidentally pointed DeepSeek Harness at its own source repository instead of the clean test folder. We caught it via `git status` before anything was overwritten, moved the output to the correct location, and are disclosing it because it explains why that trace briefly shows the model exploring an unrelated codebase before it starts — that's on us, not on the harness.
+
+All four packages were otherwise complete and functionally equivalent — every required file present, tests genuinely executed (not just claimed), and all four independently converged on nearly identical code: an `Enum`-based state machine, a `VALID_TRANSITIONS` dict, `OrderStateError`. Where these harnesses actually differ, once more, is *process* — not code quality.
+
+---
+
 ## Takeaways
 
 1. **Every agent harness, regardless of language or architecture, implements the same underlying loop**: LLM call → tool-call check → execute tool for real → feed result back → repeat until the model stops asking for tools. That convergence held across a monolith-with-extensions design, an all-plugin design, a client/server design, and a memory-first design.
@@ -220,6 +248,7 @@ Tool-call count is not simply "fewer is better" here — Hermes's single call pr
 3. **Default tool catalogs are a genuine cost lever**, not just a feature checklist. Going from 4 tools to 25 tools measurably inflates every single request, whether or not those extra tools ever get used in a given conversation.
 4. **Correctness and efficiency are separate axes.** The harness that used the fewest tool calls (Hermes, tied with pi at 1) produced the wrong answer. Don't judge a harness by call count alone — check what actually happened.
 5. **Tracing at the source level catches real bugs that black-box testing won't.** We didn't set out to find the Hermes cwd bug — it fell out of doing the same rigorous trace-and-verify pass we'd already done for the other three.
+6. **A harness having a tool doesn't mean the model will use it.** Three of four harnesses shipped subagent/delegation tooling by default; on a task hard enough to justify it, zero used it. Capability and judgment are genuinely separate questions — confirmed with real numbers this time, not just argued from principle.
 
 ---
 
