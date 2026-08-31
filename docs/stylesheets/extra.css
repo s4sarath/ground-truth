@@ -17,7 +17,7 @@
   --gt-accent: #635bff; /* Stripe "Blurple" — the one accent color */
   --gt-accent-dark: #7a73ff; /* Stripe's own dark-mode Blurple variant */
   --gt-navy: #0a2540; /* Stripe titleColor */
-  --gt-slate: #425466; /* Stripe textColor */
+  --gt-slate: #1c2b3a; /* darker than Stripe's own textColor — more ink, still not pure black */
   --gt-orange: #eb6834;
   --gt-aqua: #1baf7a;
   --gt-red: #e34948;
@@ -102,7 +102,7 @@ body,
   color: var(--md-default-fg-color);
 }
 .md-typeset {
-  font-size: 0.95rem;
+  font-size: 0.8rem;
   line-height: 1.7;
   color: var(--gt-slate);
   letter-spacing: 0.01em;
