@@ -89,37 +89,44 @@
   color: var(--md-default-fg-color);
 }
 
-/* ---- Homepage site title: smaller than a post's h1, gradient-text wordmark
-   tying it to the header bar instead of plain flat-color Space Grotesk ---- */
+/* ---- Homepage site title: editorial, Stripe-style — plain solid color,
+   no gradient-text effect. The gradient stays reserved for the header bar
+   only, so it doesn't compete with the page's actual content. ---- */
 .md-typeset h1.gt-site-title {
-  font-size: 1.6rem;
-  margin-bottom: 0.3em;
-  background: linear-gradient(100deg, var(--gt-blue-dark) 0%, #4b3fa0 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
-.hero-subtitle {
-  font-size: 0.95rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--gt-orange);
-  margin: 0 0 0.8rem 0;
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--md-default-fg-color);
+  margin-top: 1.4rem;
+  margin-bottom: 1rem;
 }
 
-/* ---- Hero tagline on the homepage ---- */
-.hero-tagline {
-  font-size: 1.35rem;
-  line-height: 1.55;
+/* ---- Meta line under the title: a thin accent rail + quiet label,
+   the same grammar as a byline/date row on an editorial blog. ---- */
+.hero-subtitle {
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
   color: var(--md-default-fg-color--light);
-  max-width: 42rem;
-  margin: 1.4rem 0 3.2rem 0;
+  border-left: 3px solid var(--gt-blue);
+  padding-left: 0.7rem;
+  margin: 0 0 1.6rem 0;
+}
+
+/* ---- Hero tagline on the homepage: plain readable body copy, not
+   oversized "hero" text ---- */
+.hero-tagline {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: var(--md-default-fg-color--light);
+  max-width: 38rem;
+  margin: 0 0 3.2rem 0;
   font-weight: 400;
 }
 .hero-tagline strong {
-  color: var(--gt-blue-dark);
+  color: var(--md-default-fg-color);
   font-weight: 700;
 }
 
