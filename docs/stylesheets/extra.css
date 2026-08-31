@@ -5,7 +5,7 @@
    and embedded data visuals read as one system.
    ============================================================ */
 
-@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap");
 
 :root {
   --gt-blue: #2a78d6;
@@ -59,20 +59,20 @@
 .md-typeset h1,
 .md-typeset h2,
 .md-typeset h3 {
-  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-family: "Plus Jakarta Sans", "Inter", sans-serif;
   font-weight: 700;
   letter-spacing: -0.01em;
 }
 .md-typeset h1 {
   font-size: 1.85rem;
   line-height: 1.2;
-  margin-bottom: 0.6em;
+  margin-bottom: 0.7em;
 }
 .md-typeset h2 {
   font-size: 1.55rem;
   border-top: 1px solid var(--md-default-fg-color--lightest, #e4e2dc);
-  padding-top: 1.6rem;
-  margin-top: 2.2rem;
+  padding-top: 2rem;
+  margin-top: 3rem;
 }
 .md-typeset h3 {
   font-size: 1.2rem;
@@ -115,7 +115,7 @@
   line-height: 1.55;
   color: var(--md-default-fg-color--light);
   max-width: 42rem;
-  margin: 1.2rem 0 2.4rem 0;
+  margin: 1.4rem 0 3.2rem 0;
   font-weight: 400;
 }
 .hero-tagline strong {
@@ -164,8 +164,8 @@
   font-size: 0.72rem;
 }
 .md-typeset table:not([class]) th {
-  background: rgba(42, 120, 214, 0.08);
-  color: var(--gt-blue-dark);
+  background: rgba(0, 0, 0, 0.035);
+  color: var(--md-default-fg-color);
   font-weight: 700;
   border: none;
 }
@@ -174,7 +174,7 @@
   border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 .md-typeset table:not([class]) tr:hover {
-  background: rgba(42, 120, 214, 0.035);
+  background: rgba(0, 0, 0, 0.02);
 }
 
 /* ---- Admonitions: brand-tuned instead of Material defaults ---- */
@@ -229,11 +229,12 @@
 
 /* ---- Code blocks: slightly warmer than pure black/white ---- */
 .md-typeset code {
-  background: rgba(42, 120, 214, 0.1);
+  background: rgba(0, 0, 0, 0.045);
   color: var(--gt-blue-dark);
   border-radius: 0.25rem;
 }
 [data-md-color-scheme="slate"] .md-typeset code {
+  background: rgba(255, 255, 255, 0.06);
   color: #7db3ef;
 }
 .md-typeset pre code {
