@@ -94,7 +94,7 @@ Three of the four are JavaScript/TypeScript, one flavor or another. Hermes is th
 
 ---
 
-## Deep dive 1: Pi — the minimal baseline
+## Pi — the minimal baseline
 
 Pi ships with exactly **4 default tools**: `read`, `write`, `edit`, `bash`. Its system prompt is a single, flat string — **16,396 characters** — built fresh each session from tool descriptions, project instructions (`AGENTS.md`), and the current working directory, all folded into one block of text.
 
@@ -105,7 +105,7 @@ Nothing about pi's request/response cycle is visible by default. We had to add t
 
 > Pi never fires a hidden LLM call just to generate a conversation title. Every other harness in this post did, at least once — see below.
 
-## Deep dive 2: DeepSeek Harness — everything is a plugin
+## DeepSeek Harness — everything is a plugin
 
 DeepSeek Harness (`dsh`) takes the opposite architectural bet from pi: instead of a fixed core, **every capability — the agent loop, the LLM provider, session storage, even the tool registry — is a swappable plugin**, composed at boot time from a YAML file. It's built on a framework called Cordis, whose explicit design goal is letting capabilities be added or removed *without restarting the process* — a deliberate contrast to how, say, VS Code's extension host requires a full restart to change what's loaded.
 
@@ -118,7 +118,7 @@ The best part of tracing dsh: **we needed zero manual instrumentation**. Its own
 - **Math question**: **2 total LLM calls** — one hidden title-generation call, then the real answer. Real-call cost: **13,534 total tokens**.
 - **File-listing question**: **4 total LLM calls** (1 title-gen + 3 real steps). The model's first move was `glob({pattern: "*"})` — and because the system prompt explicitly documents that a bare `*` pattern in `glob` matches *every file in the entire tree, not just the top level*, that single call returned **70,907 paths**, far too many to inline (they got automatically spilled to a temp file instead). The model then spent two more corrective calls narrowing down with plain `bash ls -la`. Total across the three real agent steps: **72,215 tokens** — by far the most expensive path to the same answer in this whole experiment.
 
-## Deep dive 3: OpenCode — client/server, and a system prompt that reads like Claude Code's
+## OpenCode — client/server, and a system prompt that reads like Claude Code's
 
 OpenCode is architecturally the most distinct of the four: a real **client/server split**, with one backend server supporting several independent frontends (a terminal UI, a web app, a desktop app). The globally-installed CLI isn't even running the TypeScript source directly — it's a wrapper script that locates and launches a **precompiled native binary**. That matters in practice: editing OpenCode's source and running the global install shows *zero* effect. Tracing it required running from source via Bun instead.
 
@@ -129,7 +129,7 @@ OpenCode persists everything to a **SQLite database**, not files — a `message`
 - **Math question**: **2 total LLM calls** (title-gen + real). Real-call cost: **10,594 total tokens**.
 - **File-listing question**: **4 total LLM calls** (title-gen + 3 real steps), but only **2 tool calls** — both were the same `read` tool, because OpenCode's `read` is **polymorphic**: point it at a file, get file contents; point it at a directory, get a directory listing. That single design choice sidestepped dsh's exact failure mode — no separate `glob`/`ls` split meant no risk of an accidentally-recursive oversized result. Total across the three real steps: **33,244 tokens**.
 
-## Deep dive 4: Hermes — the Python outlier, with a real bug we caught live
+## Hermes — the Python outlier, with a real bug we caught live
 
 Hermes is built by Nous Research around a different core promise than the other three: a **self-improving agent** with persistent cross-session memory, autonomous skill creation, and a genuinely large bundled skill library (19 skills shipped by default, several with individual instruction files over 30KB). It's the only Python-based harness of the four, managed with `uv`.
 
@@ -262,3 +262,14 @@ All four packages were otherwise complete and functionally equivalent — every 
 This series started as a simple question — "what actually happens when I hit enter?" — and turned into a real, reproducible dataset across four structurally different open-source agent harnesses. If you build or evaluate coding agents, the honest takeaway is: don't trust a harness's documentation *or* its own diagnostic tools at face value — trace the wire payload, read the session log, and verify the number against the byte count yourself. Every finding in this post came from doing exactly that.
 
 One open question from this pass is still unresolved: why did Hermes's title-generation call fire on one run and not the other? That's worth a follow-up on its own. If this kind of hands-on systems tracing is useful to you, follow along for what comes next.
+
+---
+
+## References
+
+- [pi](https://pi.dev) — [github.com/earendil-works/pi-mono](https://github.com/earendil-works/pi-mono)
+- [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)
+- [OpenCode](https://opencode.ai) — [github.com/anomalyco/opencode](https://github.com/anomalyco/opencode)
+- [Hermes Agent](https://hermes-agent.nousresearch.com) — [github.com/NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent)
+- Yao et al., 2022 — [ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629) — the paper behind the reasoning-then-acting loop pattern every harness in this post converges on
+- [Cordis](https://github.com/cordiverse/cordis) and its accompanying paper, [*A Programming Paradigm for Spatiotemporal Composability*](https://github.com/cordiverse/paper) — the plugin framework DeepSeek Harness is built on
