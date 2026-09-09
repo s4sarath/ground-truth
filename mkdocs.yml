@@ -9,18 +9,16 @@ theme:
     logo: material/target
   font: false
   palette:
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
+    - scheme: default
       primary: custom
       toggle:
         icon: material/brightness-7
-        name: Switch to dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
+        name: Switch to dark theme
+    - scheme: slate
       primary: custom
       toggle:
         icon: material/brightness-4
-        name: Switch to light mode
+        name: Switch to light theme
   features:
     - navigation.instant
     - navigation.tracking
@@ -47,4 +45,5 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+  - Speculative Decoding and MTP: speculative-decoding-mtp/speculative-decoding-and-mtp.md
   - What Is a Harness?: harness-agents-deep-dive/anatomy-of-an-ai-coding-agent.md

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">A small draft model proposes four candidate tokens</title>
+  <desc id="desc">The prompt enters a small draft model, which cheaply generates Santa, Clara, comma, and California across four draft time steps. All four remain provisional.</desc>
+  <defs><marker id="a" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5 0 9Z" fill="#625b75"/></marker></defs>
+  <rect x="1" y="1" width="1198" height="518" rx="22" fill="#fffaf8" stroke="#cbbaff" stroke-width="2"/>
+  <g font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif">
+    <text x="600" y="48" text-anchor="middle" font-size="27" font-weight="650" fill="#1d1d1f">The drafter still predicts serially—but each step is cheap</text>
+    <text x="600" y="78" text-anchor="middle" font-size="16" fill="#6e6e73">K = 4 candidates are prepared before the expensive target is called.</text>
+    <rect x="50" y="145" width="205" height="82" rx="14" fill="#f2edff" stroke="#b6a3f4"/><text x="152" y="178" text-anchor="middle" font-size="16" font-weight="650" fill="#25212d">Prompt</text><text x="152" y="202" text-anchor="middle" font-size="13" fill="#655f6d">… headquartered in</text>
+    <g text-anchor="middle">
+      <g fill="#eaf8f0" stroke="#72bd93" stroke-width="1.5"><rect x="315" y="130" width="175" height="112" rx="15"/><rect x="530" y="130" width="175" height="112" rx="15"/><rect x="745" y="130" width="175" height="112" rx="15"/><rect x="960" y="130" width="175" height="112" rx="15"/></g>
+      <g fill="#6e56cf" font-size="12" font-weight="700"><text x="402" y="153">d1</text><text x="617" y="153">d2</text><text x="832" y="153">d3</text><text x="1047" y="153">d4</text></g>
+      <g fill="#25212d" font-size="16" font-weight="650"><text x="402" y="184">Small drafter</text><text x="617" y="184">Small drafter</text><text x="832" y="184">Small drafter</text><text x="1047" y="184">Small drafter</text></g>
+      <g fill="#527060" font-size="13"><text x="402" y="210">cheap step</text><text x="617" y="210">cheap step</text><text x="832" y="210">cheap step</text><text x="1047" y="210">cheap step</text></g>
+      <g fill="#fff" stroke="#72bd93"><rect x="337" y="319" width="130" height="57" rx="11"/><rect x="552" y="319" width="130" height="57" rx="11"/><rect x="767" y="319" width="130" height="57" rx="11"/><rect x="982" y="319" width="130" height="57" rx="11"/></g>
+      <g fill="#27543b" font-size="17" font-weight="650"><text x="402" y="354">Santa</text><text x="617" y="354">Clara</text><text x="832" y="354">,</text><text x="1047" y="354">California</text></g>
+      <text x="724" y="433" font-size="15" font-weight="650" fill="#6f3425">PROVISIONAL: none of these tokens is visible output yet</text>
+    </g>
+    <g fill="none" stroke="#625b75" stroke-width="2" marker-end="url(#a)"><path d="M255 186h60"/><path d="M490 186h40"/><path d="M705 186h40"/><path d="M920 186h40"/><path d="M402 242v77"/><path d="M617 242v77"/><path d="M832 242v77"/><path d="M1047 242v77"/></g>
+    <path d="M337 418h775" stroke="#e59b76" stroke-width="1.5"/>
+    <text x="600" y="483" text-anchor="middle" font-size="14" fill="#6e6e73">A useful draft is fast and likely to agree with the target; it does not need to replace the target.</text>
+  </g>
+</svg>

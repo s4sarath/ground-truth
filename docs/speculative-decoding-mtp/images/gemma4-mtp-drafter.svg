@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="570" viewBox="0 0 1100 570" role="img" aria-labelledby="title desc">
+  <title id="title">How the Gemma 4 MTP drafter reuses target-model state</title>
+  <desc id="desc">The target processes the prompt and provides last-layer activations and cached keys and values. A small four-layer drafter combines those with token embeddings, proposes future tokens sequentially, and returns the proposal to the target for parallel verification.</desc>
+  <defs><marker id="a" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0L9 4.5 0 9Z" fill="#625b75"/></marker></defs>
+  <rect x="1" y="1" width="1098" height="568" rx="22" fill="#fffaf8" stroke="#cbbaff" stroke-width="2"/>
+  <g font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif">
+    <text x="550" y="52" text-anchor="middle" font-size="28" font-weight="650" fill="#1d1d1f">Gemma 4 gives the drafter a head start</text>
+    <text x="550" y="82" text-anchor="middle" font-size="16" fill="#6e6e73">It reuses the target’s representation of the prompt instead of independently prefilling the context.</text>
+    <g text-anchor="middle">
+      <rect x="55" y="150" width="150" height="78" rx="14" fill="#f2edff" stroke="#b6a3f4"/><text x="130" y="184" font-size="17" font-weight="600" fill="#25212d">Prompt</text><text x="130" y="207" font-size="13" fill="#655f6d">tokens</text>
+      <rect x="275" y="132" width="200" height="114" rx="16" fill="#eaf2ff" stroke="#8eb3eb" stroke-width="2"/><text x="375" y="174" font-size="18" font-weight="650" fill="#25212d">Gemma 4 target</text><text x="375" y="199" font-size="13" fill="#526273">processes prompt once</text><text x="375" y="220" font-size="13" fill="#526273">and generates current token</text>
+      <rect x="555" y="120" width="222" height="138" rx="17" fill="#eaf8f0" stroke="#72bd93" stroke-width="2"/><text x="666" y="158" font-size="18" font-weight="650" fill="#25212d">MTP drafter</text><text x="666" y="184" font-size="13" fill="#527060">token embedding + target state</text><rect x="588" y="204" width="156" height="32" rx="8" fill="#fff" stroke="#acd8bf"/><text x="666" y="225" font-size="12" font-weight="600" fill="#315c43">4 Transformer layers</text>
+      <rect x="847" y="150" width="198" height="78" rx="14" fill="#fff1ec" stroke="#e59b76"/><text x="946" y="183" font-size="17" font-weight="600" fill="#25212d">Draft block</text><text x="946" y="207" font-size="13" fill="#6f4c40">future tokens</text>
+    </g>
+    <g fill="none" stroke="#625b75" stroke-width="2.2" marker-end="url(#a)"><path d="M205 189h70"/><path d="M475 189h80"/><path d="M777 189h70"/></g>
+    <rect x="275" y="316" width="200" height="94" rx="15" fill="#faf9ff" stroke="#cbbaff"/><text x="375" y="348" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif" font-size="15" font-weight="650" fill="#25212d">Shared target state</text><text x="375" y="374" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif" font-size="13" fill="#655f6d">last-layer activations</text><text x="375" y="394" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif" font-size="13" fill="#655f6d">+ attention KV cache</text>
+    <path d="M375 246v70" fill="none" stroke="#6e56cf" stroke-width="2.2" marker-end="url(#a)"/>
+    <path d="M475 363h116c45 0 75-40 75-105" fill="none" stroke="#6e56cf" stroke-width="2.2" marker-end="url(#a)"/>
+    <text x="542" y="347" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif" font-size="12" font-weight="700" fill="#6e56cf">REUSE</text>
+    <path d="M946 228v96c0 92-90 148-235 148H463c-67 0-88-30-88-62" fill="none" stroke="#625b75" stroke-width="2.2" marker-end="url(#a)"/>
+    <text x="800" y="454" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#625b75">TARGET VERIFIES THE DRAFT IN ONE PASS</text>
+    <g font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif">
+      <text x="55" y="505" font-size="14" font-weight="700" fill="#6e56cf">WHY IT IS CHEAP</text>
+      <text x="205" y="505" font-size="14" fill="#4d4755">No separate prompt prefill</text><circle cx="402" cy="500" r="3" fill="#a993ff"/><text x="420" y="505" font-size="14" fill="#4d4755">Small 4-layer block</text><circle cx="586" cy="500" r="3" fill="#a993ff"/><text x="604" y="505" font-size="14" fill="#4d4755">Paired target state</text><circle cx="772" cy="500" r="3" fill="#a993ff"/><text x="790" y="505" font-size="14" fill="#4d4755">Any draft length</text>
+      <text x="550" y="542" text-anchor="middle" font-size="14" fill="#6e6e73">For E2B and E4B, clustered vocabulary lookup further reduces the drafter’s output work.</text>
+    </g>
+  </g>
+</svg>

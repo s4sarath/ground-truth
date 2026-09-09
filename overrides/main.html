@@ -7,4 +7,36 @@
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="{{ config.site_url }}branding/ground-truth-og-image.png" />
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      var header = document.querySelector(".md-header__inner");
+      var light = document.getElementById("__palette_0");
+      var dark = document.getElementById("__palette_1");
+      if (!header || !light || !dark || document.getElementById("gt-theme-control")) return;
+
+      var control = document.createElement("div");
+      control.id = "gt-theme-control";
+      control.setAttribute("role", "group");
+      control.setAttribute("aria-label", "Theme");
+      control.innerHTML = '<span>Theme</span><button type="button" data-theme="light">Light</button><button type="button" data-theme="dark">Dark</button>';
+
+      function update() {
+        var isDark = document.body.getAttribute("data-md-color-scheme") === "slate";
+        control.querySelector('[data-theme="light"]').setAttribute("aria-pressed", String(!isDark));
+        control.querySelector('[data-theme="dark"]').setAttribute("aria-pressed", String(isDark));
+      }
+      function selectTheme(theme) {
+        var input = theme === "dark" ? dark : light;
+        input.checked = true;
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+        window.setTimeout(update, 0);
+      }
+      control.addEventListener("click", function (event) {
+        var button = event.target.closest("button[data-theme]");
+        if (button) selectTheme(button.dataset.theme);
+      });
+      header.appendChild(control);
+      update();
+    });
+  </script>
 {% endblock %}

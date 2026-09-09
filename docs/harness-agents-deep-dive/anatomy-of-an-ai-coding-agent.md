@@ -1,275 +1,239 @@
-# What Is a Harness? Why an LLM Alone Can't Be a Coding Agent
+# Inside a Coding-Agent Harness: How an LLM Becomes an Agent
 
-You type a prompt into an AI coding assistant. A few seconds later, an answer appears. Maybe it read a file first. Maybe it ran a command. Then it's just... there — text, in your terminal, as if it arrived by magic.
+> Tools, execution, state, context, and the loop that turns model output into real work.
 
-It didn't. The thing doing the magic has a name almost nobody outside the field uses correctly, if they use it at all: a **harness**. This post is about that word — what it actually means, why an LLM is genuinely useless without one, why a harness alone still isn't enough, and then — because we don't like making claims we haven't checked — a full trace of four *real* open-source harnesses (pi, DeepSeek Harness, OpenCode, Hermes) pointed at the *same* model, asked the *same* two questions, with every byte of what actually got sent and returned read and verified.
+Ask a language model, “What is the square of 13?” It can answer from the context already available to it. Now ask, “List all files in this directory.” The wording is equally simple, but the second request needs something the model does not possess: access to a real directory.
 
-> **Who this is for**: the next few sections assume nothing — if "harness" is a new word to you, start there. If you already know what a harness is and want the receipts — real trace data across four implementations — jump to [The experiment](#the-experiment).
+To complete that request, another system must expose a filesystem tool, decide where the command runs, execute it, capture the result, and return that evidence to the model. That system is the **coding-agent harness**.
 
----
+This investigation follows that layer across Pi, DeepSeek Harness, OpenCode, Hermes, and TrueForge. It is not a winner/loser benchmark. The aim is to show how choices around context, tools, execution, and product features shape the behavior of the same basic agent loop.
 
-## What is a "harness," actually?
+!!! note "Measurement scope"
+    Pi, DeepSeek Harness, OpenCode, and Hermes were tested using the same endpoint and the same two prompts. TrueForge was examined in a separate local trace. Its timings illustrate its internal flow, but are not directly comparable with the controlled four-harness measurements.
 
-Think of the large language model — GPT, Claude, DeepSeek, Nemotron, whatever — as an engine. It's extremely good at exactly one thing: given some text, predict what text should come next. That's it. That's the whole capability. An engine, on its own, can't drive anywhere — it needs a car built around it: a steering wheel, a dashboard, wheels that actually touch the road.
+## The model is not the agent
 
-A **harness** is that car. It's the software layer that:
+At its core, an LLM maps an input context to a sequence of output tokens. Those tokens may represent an answer or a structured request to use a tool, but the model does not execute that request.
 
-1. Takes your plain-English request and wraps it with instructions the model needs but you never typed (who it is, what tools it has, what directory it's working in)
-2. Gives the model a defined set of **tools** — read a file, run a shell command, edit code — that it can ask to use
-3. Runs a **loop**: send the request, see if the model wants to use a tool, actually run that tool for real, feed the result back, and repeat until the model has a final answer
-4. Hands you back plain text
+The harness provides the missing operational layer. It assembles context, presents tools, runs approved actions, preserves state, and feeds tool results back into the next model call. A coding agent is therefore a loop around the model—not the model alone.
 
-!!! note "In plain terms"
-    The model can only ever do one thing: guess the next word. It cannot, by itself, open a file on your laptop, run a command, or know today's date. A harness is the piece of software standing between the model and your actual computer, translating "I'd like to run `ls`" into a real command that really runs, then translating the real result back into words the model can read.
+### The request-to-result loop
 
-!!! tip "You've probably used one already"
-    If you've used Claude Code, Cursor, or GitHub Copilot's agent mode, you've used a harness — you just weren't shown the word. "Claude," for instance, is really two separable things: the model (Opus, Sonnet, Fable, Haiku — the engine) and **Claude Code** (the harness — the CLI wrapping it with a system prompt, a tool list, and this exact loop). Everything traced in this post about pi, dsh, OpenCode, and Hermes is the same machinery running underneath whatever coding assistant you already reach for daily — including, quite possibly, the one that helped write this sentence.
+Given the supplied instructions and tools, the model may generate a tool request when it needs external evidence. The harness validates and executes that request, then adds the result to the conversation. The loop continues until the model produces a final answer or the runtime stops the turn.
 
-## Why "harness" is such a confusing word
+![The coding-agent loop](images/harness-loop-diagram.svg)
 
-Ask five people in this space to define "harness" and you'll likely get five different answers, because the word gets used loosely for several distinct things at once:
+The distinction is practical. Without execution and result return, “list the files in this directory” remains text generation. A model can suggest `ls -la`; it cannot know what that command returned until another system runs it and supplies the output.
 
-- Sometimes it means the **whole CLI tool** you install and run (Claude Code, pi, Hermes)
-- Sometimes it means specifically the **loop** — the send/check-for-tool-call/execute/repeat mechanism described above — as distinct from the UI wrapped around it
-- Sometimes people say "agent" or "framework" or "scaffold" or "runtime" instead, meaning roughly the same thing
-- And two of the four tools traced in this post — pi and OpenCode — never use the word "harness" to describe themselves at all; **DeepSeek Harness** even put the word in its own name
+## What the harness actually controls
 
-For this post, "harness" means the whole software layer between the raw model API and a working coding tool — the numbered list above, end to end. If you see another term used elsewhere for roughly the same idea, that's not a contradiction; the ecosystem genuinely hasn't converged on one word yet.
+The harness does more than attach tools to a model. It defines the environment in which the model is allowed to work.
 
-## What happens with no harness at all
+| Responsibility | What it does | Why it matters |
+|---|---|---|
+| Context and prompt construction | Combines policy, task context, history, and tool schemas | Changes what the model sees and the cost of each call |
+| Tool selection and execution | Defines actions such as reading, searching, editing, and running commands | Determines what the agent can actually do |
+| State and loop control | Preserves messages, results, approvals, retries, and limits | Keeps multi-step work coherent and bounded |
+| Isolation and approvals | Sets accessible roots, network policy, and execution permissions | Determines where actions can run and what they may touch |
+| Observability | Records calls, tools, durations, usage, and errors | Makes a failure explainable rather than mysterious |
 
-This is the part worth actually seeing, not just being told. Take the exact same question we ask every harness later in this post — *"list all files in this directory"* — and send it to a raw model API with **no tools attached at all**. No `bash`, no `read`, nothing:
+### Context and prompt construction
 
-```json
-{
-  "model": "some-llm",
-  "messages": [
-    {"role": "user", "content": "List all files in this directory."}
-  ]
-}
-```
+The model does not see a repository or a tool by default. The harness constructs the request that represents both. System instructions, tool definitions, task history, and workspace details become part of the model’s decision environment.
 
-!!! danger "What actually happens"
-    One of two things, and both are bad. Either the model correctly says *"I don't have access to your filesystem"* — a dead end, no matter how good the model is — or, worse, a confident model **invents a plausible-looking file listing anyway**, because next-token prediction has no built-in concept of "I actually know this" versus "this sounds like the kind of thing that goes here." It isn't lying on purpose. It's doing exactly what it was built to do — predict likely-sounding text — applied to a question that plain text prediction can never actually answer.
+### Tool selection and execution
 
-That second failure mode is the one that should worry you more. A refusal is at least honest. A **confidently wrong, fabricated directory listing** looks identical to a correct one until you check it against reality — and checking against reality is precisely the one thing a harness exists to do that a raw model call cannot.
+A tool schema only gives the model a way to request work. The harness decides whether that schema is available, validates the request, executes it in the configured environment, and returns a result that the model can use.
 
-## Why this matters
+### State, isolation, and observability
 
-A harness's entire reason for existing is to convert "plausible-sounding text" into "verified, real actions with real results fed back into the conversation." Every tool call in this post — `bash ls -la`, `glob("*")`, `read()` on a directory — is the harness taking the model's *request* to do something and actually doing it for real, then handing the *real* result back. Without that loop, you don't have an agent. You have autocomplete with extra steps, guessing what a file listing probably looks like instead of reading one.
+State keeps a multi-step turn coherent. Isolation and approvals define the capability boundary. Observability connects the final answer back to the calls, tool events, and delays that produced it. These are separate concerns, but together they determine whether an agent is useful and trustworthy.
 
-## A harness doesn't fix a weak model
+## Two questions that reveal the agent loop
 
-Here's the part that surprises people once they understand the first half of this: **giving a weak or older model a harness does not automatically make it a good agent.** A harness supplies the *capability* to call tools — it doesn't supply the *judgment* to call the right one, with the right arguments, and to reason correctly about what comes back. Those are still entirely the model's job.
+The following pair is deliberately small, but it exposes most of the architecture.
 
-!!! warning "This isn't theoretical — we caught it live"
-    Later in this post, the exact same model, given the exact same question, called a wrong tool with no arguments and confidently reported the contents of the wrong directory — not because the harness was broken, but because the model incorrectly inferred where it was from an unrelated line of context and never double-checked. A different harness's tool made a *different* model call it recursively across an entire 130-package repository, returning 70,907 results for a question that needed maybe thirty. Same underlying capability (a harness, tools, a loop) — two very different failure modes, both caused by the model's own reasoning, not the plumbing around it.
+1. “What is the square of 13?”
+2. “List all files in this directory.”
 
-A harness is necessary. It is not sufficient. That distinction — capability versus judgment — is the thread running through everything that follows.
+The first question can be answered directly. The second needs evidence from a filesystem. It requires a tool, an intended working directory, an execution boundary, and a second opportunity for the model to interpret the result.
 
-![Diagram of the universal harness loop: user prompt goes to the harness, which adds a system prompt and tool list before sending to the LLM. The LLM either returns a final answer or requests a tool call; tool calls execute for real and feed results back into another LLM call, looping until the model stops requesting tools.](images/harness-loop-diagram.svg)
+| Question | Expected behavior | What it tests |
+|---|---|---|
+| Square of 13 | Direct answer | Prompt overhead and unnecessary orchestration |
+| List files | Tool request followed by an answer | Tool availability, execution context, and result integration |
 
-Every one of the four harnesses traced below — despite being built in different languages, by different teams, with completely different philosophies — implements exactly this loop underneath. That convergence, on its own, is one of the more interesting findings here.
+The contrast matters because a successful tool call is not enough. The tool must be available, run in the right place, return usable evidence, and be incorporated into the next response.
 
-## The experiment
+## The same model, five different execution systems
 
-We used one model throughout — **Nemotron 3.5 Lightning**, via a single custom NVIDIA endpoint — so every difference we found is attributable to the *harness*, not to the model getting smarter or dumber between tests. And we asked each harness exactly two questions:
+All five systems implement the same basic loop. Their differences lie in what they place around it: how much context they provide, which tools they expose, where those tools execute, and what additional work the product performs.
 
-- **"What is the square of 13?"** — a question the model can answer purely from its own reasoning. No file access, no command execution needed. This is our baseline: what does it cost to do *nothing* but think?
-- **"List all files in this directory."** — a question the model *cannot* answer without using a tool. It has to decide which tool, call it, read the result, and decide whether that's enough. This is where harness design choices actually start to matter.
+| Harness | Main lesson |
+|---|---|
+| Pi | A small tool surface can support an effective loop |
+| DeepSeek Harness | Broad capabilities increase context and decision surface |
+| OpenCode | Product features can create additional orchestration |
+| Hermes | Ambiguous environment context can produce a confidently wrong result |
+| TrueForge | Tool access is determined dynamically by harness policy |
 
-We instrumented each harness at the source level — adding trace logging where necessary, reading built-in session logs where they already existed — to capture the literal request sent to the model and the literal response that came back, not a summary of either.
+### Pi: a minimal terminal-first loop
 
----
+Pi provided **4 default tools** and a **16,396-character** system prompt in the observed setup. The arithmetic request completed in **one model call**. For the filesystem request, Pi called Bash with `ls -la`, received the output, and answered from it.
 
-## Meet the four
+The lesson is not that fewer tools are always better. It is that a narrow set of well-chosen primitives can be sufficient for a complete request-to-result loop.
 
-| | Pi | DeepSeek Harness | OpenCode | Hermes |
-|---|---|---|---|---|
-| Built by | earendil-works | DeepSeek AI | SST / opencode.ai | Nous Research |
-| Language / runtime | TypeScript (Node, via `tsx`) | TypeScript (Node, via `tsx`-ESM) | TypeScript (Bun) | **Python** (`uv`) |
-| Core design philosophy | A focused core with an extension system on top | "Everything is a plugin" (Cordis framework) | Client/server split — one backend, multiple frontends (TUI, web, desktop) | Self-improving agent — memory, skill creation, cross-session learning |
+### DeepSeek Harness: a broader tool surface
 
-Three of the four are JavaScript/TypeScript, one flavor or another. Hermes is the outlier — a Python stack managed by `uv`, and the only one of the four explicitly designed around persistent, evolving memory rather than a fresh start each session.
+DeepSeek Harness exposed **25 default tools** and constructed roughly **26,305 characters** of prompt context in the observed run. It also generated a hidden title before handling the visible request. For the filesystem task, its first action was a broad glob that returned **70,907 paths**; it then followed up with **two shell commands** before answering.
 
----
+A rich tool catalog increases prompt size and the model’s decision surface. In this run, the first selected action was also inefficient. That observation does not prove that the number of tools caused the glob, but it shows why tool breadth and first-action quality should be traced together.
 
-## Pi — the minimal baseline
+### OpenCode: an application around the loop
 
-Pi ships with exactly **4 default tools**: `read`, `write`, `edit`, `bash`. Its system prompt is a single, flat string — **16,396 characters** — built fresh each session from tool descriptions, project instructions (`AGENTS.md`), and the current working directory, all folded into one block of text.
+OpenCode presented **11 tools** in a **22,090-character** prompt. It also performed a title-generation call in addition to visible work. Its filesystem response used **two read operations** and **four total model calls**, including the title call.
 
-Nothing about pi's request/response cycle is visible by default. We had to add trace instrumentation to **6 separate source files** — the agent loop, the system-prompt builder, the tool implementations, and the actual HTTP request layer — before we could see the literal system prompt, the full tool schemas, and the model's raw internal reasoning text. Once instrumented, though, the picture was completely clean:
+Those extra calls may support useful product features. The engineering requirement is not necessarily to eliminate them; it is to make their purpose and cost visible.
 
-- **Math question**: one LLM call, **5,089 total tokens**, no tool use. Done.
-- **File-listing question**: the model reasoned *"I'll use the bash command to do this"* and called `bash({command: "ls -la"})` — exactly one tool call, non-recursive, top-level only. A second LLM call read the result and wrote the final answer. **11,370 total tokens** across both calls.
+### Hermes: when execution context goes wrong
 
-> Pi never fires a hidden LLM call just to generate a conversation title. Every other harness in this post did, at least once — see below.
+Hermes supplied approximately **19 tools** and a **17,154-character** prompt. It answered the arithmetic question directly. For the file-listing request, it made a tool call, but the command ran in the **home directory rather than the intended project directory**.
 
-## DeepSeek Harness — everything is a plugin
+This is the clearest example of why tool availability alone does not guarantee correctness. The model did request an action. The surrounding execution contract did not make the target directory unambiguous.
 
-DeepSeek Harness (`dsh`) takes the opposite architectural bet from pi: instead of a fixed core, **every capability — the agent loop, the LLM provider, session storage, even the tool registry — is a swappable plugin**, composed at boot time from a YAML file. It's built on a framework called Cordis, whose explicit design goal is letting capabilities be added or removed *without restarting the process* — a deliberate contrast to how, say, VS Code's extension host requires a full restart to change what's loaded.
+### TrueForge: tool access controlled by the sandbox
 
-One genuinely surprising discovery: dsh's LLM adapter **literally depends on pi's own `pi-ai` npm package** as one of its backends. Two independently-developed harnesses, sharing the same underlying LLM-API compatibility layer — a small but real signal that the ecosystem is starting to converge on shared infrastructure rather than everyone reinventing it.
+TrueForge is a session-oriented runtime with a web UI, API, SDK, and pluggable providers. In the local flow examined here, the `exec` tool is included in the model request only when sandboxing is enabled. The sandbox identifier is kept with the session, allowing later turns to reuse that execution environment.
 
-dsh's default tool catalog is **25 tools** — file, shell, subagent, workflow, goal-tracking, and job-management tools, reflecting "everything is a plugin" taken to its logical model-facing conclusion. Its system prompt is architecturally different from pi's too: instead of one big string, it's split across **four separate messages** — a 4,163-character `system` field, plus three more injected as distinct `user`-role messages tagged by source: `AGENTS.md` content (16,364 characters), a sandbox/approval-policy snapshot (486 characters), and a full skill catalog (5,292 characters). Total: **26,305 characters** of context before your actual question is even added — bigger than pi's single string, just packaged differently.
+At this level, the important point is simple: tool access is a harness policy. The detailed sandbox behavior and trace sequence appear later in the case study.
 
-The best part of tracing dsh: **we needed zero manual instrumentation**. Its own contribution guidelines state a hard rule — *"Model-visible ⟺ logged: anything that reaches a model request must be reconstructable from the session log."* We tested that claim directly rather than trusting it, and it held completely. Every session is written as a zstd-compressed, append-only JSONL file, and it already contained the full system prompt, complete tool schemas, and the model's raw unfiltered reasoning text — no source edits required.
+## What the traces reveal
 
-- **Math question**: **2 total LLM calls** — one hidden title-generation call, then the real answer. Real-call cost: **13,534 total tokens**.
-- **File-listing question**: **4 total LLM calls** (1 title-gen + 3 real steps). The model's first move was `glob({pattern: "*"})` — and because the system prompt explicitly documents that a bare `*` pattern in `glob` matches *every file in the entire tree, not just the top level*, that single call returned **70,907 paths**, far too many to inline (they got automatically spilled to a temp file instead). The model then spent two more corrective calls narrowing down with plain `bash ls -la`. Total across the three real agent steps: **72,215 tokens** — by far the most expensive path to the same answer in this whole experiment.
+### Tool availability is not enough
 
-## OpenCode — client/server, and a system prompt that reads like Claude Code's
+For the filesystem request, Pi used `bash: ls -la`; DeepSeek Harness used a broad glob and then shell commands; OpenCode used **two read calls**; Hermes ran a shell command in the **wrong directory**. TrueForge ran `exec: ls -la` when sandboxing was enabled and had **no execution tool** when it was disabled.
 
-OpenCode is architecturally the most distinct of the four: a real **client/server split**, with one backend server supporting several independent frontends (a terminal UI, a web app, a desktop app). The globally-installed CLI isn't even running the TypeScript source directly — it's a wrapper script that locates and launches a **precompiled native binary**. That matters in practice: editing OpenCode's source and running the global install shows *zero* effect. Tracing it required running from source via Bun instead.
+The relevant question is not merely “did the agent use a tool?” It is whether it received the right tool, executed in the right context, and used the returned evidence correctly.
 
-Its default tool catalog is **11 tools**: `bash, edit, glob, grep, invalid, read, skill, task, todowrite, webfetch, write` (that `invalid` entry looks like a placeholder or bug, not a real capability — flagged, not chased down further). Its system prompt for the real agent call is a single string, **22,090 characters** — the largest single-message system prompt of the four (dsh's *total* context ends up bigger once its three extra injected messages are counted, but that's spread across four messages, not one) — and its exact phrasing is strikingly close to Claude Code's own: *"You should be concise, direct, and to the point... You MUST answer concisely with fewer than 4 lines... Never use tools like Bash or code comments as means to communicate with the user."* Worth noting plainly, not as an accusation — terminal-based coding agents plausibly converge on similar concision constraints independently, since the design pressure (small terminal windows, no room for narration) is the same for everyone.
+### Diagram: tool calls for the directory request
 
-OpenCode persists everything to a **SQLite database**, not files — a `message`/`part` table pair holding JSON blobs per turn. Checking directly, nearly everything was already there without instrumentation: raw reasoning text, full tool input/output, final answers, even a capability neither of the other harnesses has — **a git snapshot hash recorded after every single step**, meaning OpenCode can literally diff your entire workspace between any two tool calls. The one real gap: the system prompt itself was never persisted anywhere. One line of trace code at the exact point it's assembled closed that gap completely.
+This chart compares the number of tool calls needed to answer the same filesystem question in the controlled four-harness run.
 
-- **Math question**: **2 total LLM calls** (title-gen + real). Real-call cost: **10,594 total tokens**.
-- **File-listing question**: **4 total LLM calls** (title-gen + 3 real steps), but only **2 tool calls** — both were the same `read` tool, because OpenCode's `read` is **polymorphic**: point it at a file, get file contents; point it at a directory, get a directory listing. That single design choice sidestepped dsh's exact failure mode — no separate `glob`/`ls` split meant no risk of an accidentally-recursive oversized result. Total across the three real steps: **33,244 tokens**.
+![Tool-call comparison for the controlled four-harness run](images/tool-call-comparison.svg)
 
-## Hermes — the Python outlier, with a real bug we caught live
+### Working-directory context affects correctness
 
-Hermes is built by Nous Research around a different core promise than the other three: a **self-improving agent** with persistent cross-session memory, autonomous skill creation, and a genuinely large bundled skill library (19 skills shipped by default, several with individual instruction files over 30KB). It's the only Python-based harness of the four, managed with `uv`.
+Hermes demonstrates a specific failure mode: an agent can successfully call a tool and still produce the wrong answer when the harness does not make the execution location clear. The working directory is not incidental metadata; it is part of the meaning of a filesystem request.
 
-Its actual runtime system prompt, verified directly from an exported session, is **17,154 characters** — reasonably close to pi's. A separate built-in diagnostic command, `hermes prompt-size --json`, reports something much larger — up to **115,646 characters** — but that figure is a *budget ceiling*: it sums the full Markdown body of every bundled skill file, not what's actually sent. In practice, only a lightweight *index* of skill names and one-line descriptions goes into the real prompt; full skill content loads on demand. Worth stating precisely, because the two numbers look contradictory if you don't know which one describes the theoretical maximum versus the actual wire payload.
+### More tools can create more decision overhead
 
-Hermes also has the best built-in tracing story of any of the four for content — `hermes sessions export <id> --format jsonl` dumps the complete session (full system prompt, raw reasoning, every tool call and result) with zero manual instrumentation needed, similar to dsh.
+Prompt and tool shape are part of the agent design. Pi’s observed setup had **4 default tools** and a **16,396-character** system prompt. DeepSeek Harness had **25 tools** and roughly **26,305 characters** of prompt context. OpenCode had **11 tools** in **22,090 characters**, while Hermes supplied approximately **19 tools** in a **17,154-character** prompt.
 
-- **Math question**: **1 LLM call**, no hidden title-generation call this run — **17,346 total tokens**.
-- **File-listing question**: **2 LLM calls**, and this run *did* get a hidden title-gen call (`title_source: "llm"`) — an inconsistency between the two runs we haven't resolved, flagged rather than papered over. **1 tool call**, `terminal({"command": "ls -la"})`.
+These values describe tested configurations, not universal rankings. A shorter prompt does not automatically win, but every instruction and tool schema is part of the model’s decision environment.
 
-> **We caught a real, reproducible bug here.** The file-listing answer described the contents of the user's *home directory*, not the actual invocation directory. Tracing the model's own reasoning text found the exact cause: *"Let me check the current working directory first — it's /Users/sarathn based on the context."* Searching the full system prompt for that path found exactly one occurrence — an unrelated line about where Hermes stores its own profile data. Unlike pi, dsh, and OpenCode, **Hermes never injects an explicit "current working directory" fact into the system prompt**. The model guessed from an adjacent, unrelated fact, guessed wrong, then ran a path-less `ls -la` that landed wherever the shell process's default directory happened to be. Two symptoms, one root cause, both traced to source.
+### Cost belongs to the entire agent loop
 
-Real-call cost for the file-listing question: **39,122 tokens** across the two calls — for an answer that, worth repeating, was about the wrong directory.
+For the arithmetic request in the controlled run, Pi used **one model call** and **5,089 total tokens**. DeepSeek Harness and OpenCode each added title-generation work; their visible-answer calls used **13,534** and **10,594 tokens** respectively. Hermes used **one 17,346-token call**.
 
----
+The figures are not model-quality scores. Agent cost includes prompt construction, model calls, tool rounds, and product features surrounding the answer.
 
-## The numbers, side by side
+### Diagram: token use for two simple requests
 
-### System prompts, side by side
+Blue is the direct arithmetic request; coral is the filesystem request. Title-generation calls are excluded so the chart stays focused on visible agent work.
 
-Every harness injects the same *categories* of information — who the model is, what tools it has, project-specific instructions, environment facts — but packages them completely differently. This matters because packaging choices (one string vs. several messages, full skill bodies vs. an index) directly drive the token-cost differences in the next section:
+![Token comparison for the controlled four-harness arithmetic run](images/token-cost-comparison.svg)
 
-| | Pi | DeepSeek Harness | OpenCode | Hermes |
-|---|---|---|---|---|
-| Total size | **16,396** chars | **26,305** chars | **22,090** chars | **17,154** chars |
-| Delivered as | 1 message | 1 `system` message + 3 separate `user`-role injections | 1 message | 1 message |
-| Persona / identity | ✅ | ✅ | ✅ (closely mirrors Claude Code's phrasing) | ✅ |
-| Tool descriptions | ✅ (4 tools) | ✅ (25 tools) | ✅ (11 tools) | ✅ (~19 tools) |
-| Project instructions (`AGENTS.md`) | Inlined into the same string | **Separate message**, tagged `source: agent-instructions` | Inlined into the same string | Inlined into the same string |
-| Skills | Full skill content inlined | **Separate message**, full catalog | Not present in our trace | Index only (names + one-line descriptions) — full skill bodies load on demand |
-| Current working directory | ✅, explicit line | ✅, but via a *different* injected message (the sandbox-policy one), not the `system` field itself | ✅, explicit line | ❌ — **never observed anywhere**, and this absence is the root cause of the Hermes bug below |
+## A longer coding task: four harnesses under sustained work
 
-### Token cost, side by side
+The two short prompts isolate the mechanics of a single agent loop. We also tested whether those differences persist during a real coding task: build a multi-file Python package with a state machine, pluggable payment providers and notifiers, a CLI, tests, and packaging. Pi, DeepSeek Harness, OpenCode, and Hermes received the same prompt in separate clean directories using the same model endpoint.
 
-![Grouped bar chart comparing total tokens billed per harness for the math question versus the file-listing question. Pi: 5,089 and 11,370. DeepSeek Harness: 13,534 and 72,215. OpenCode: 10,594 and 33,244. Hermes: 17,346 and 39,122.](images/token-cost-comparison.svg)
+TrueForge is intentionally excluded from this comparison. Its recorded trace used a separately configured endpoint and was designed to examine sandbox behavior, so placing it in this table would suggest a like-for-like benchmark that the available evidence does not support.
 
-Same model, same two questions, and the most expensive path (DeepSeek Harness, file-listing) costs roughly **14x** more than the cheapest (Pi, math question) — almost entirely explained by default tool-catalog size and system-prompt packaging, not anything about the underlying model.
+### Diagram: capability available versus capability used
 
-### Tool calls, side by side
+Three of the four harnesses exposed delegation or subagent tooling. In this task, none of those tools were invoked: every implementation completed its work through the same flat model → tool → result loop.
 
-![Bar chart of tool calls needed to answer the file-listing question. Pi: 1. DeepSeek Harness: 3. OpenCode: 2. Hermes: 1 (but wrong answer).](images/tool-call-comparison.svg)
+![Three of the four harnesses exposed delegation tools, but none invoked delegation during the multi-file Python-package task.](images/capability-vs-usage.svg)
 
-Tool-call count is not simply "fewer is better" here — Hermes's single call produced a **wrong** answer, while Pi's single call was correct. The count alone doesn't tell you about correctness; you have to check what was actually called, with what arguments, and what came back:
+### Results from the coding-program run
 
-| | Tool(s) called | Arguments | Outcome |
-|---|---|---|---|
-| Pi | 1× `bash` | `ls -la` | Correct — real repo contents |
-| DeepSeek Harness | 1× `glob`, then 2× `bash` | `*` (recursive, all depths) → 70,907 paths, then 2 corrective `ls -la` | Correct, after 2 unnecessary corrections |
-| OpenCode | 2× `read` | path = repo root, then path = `packages/` | Correct — `read` is directory-aware |
-| Hermes | 1× `terminal` | `ls -la`, **no path argument at all** | **Wrong** — listed the user's home directory |
+| Measurement | Pi | DeepSeek Harness | OpenCode | Hermes |
+|---|---:|---:|---:|---:|
+| LLM calls | **44** | **77** | **16** | **56** |
+| Tool calls | **43** | **76** | **29** | **55** |
+| Total tokens | **599,450** | **2,750,020** | **223,982** | **1,807,554** |
+| Wall-clock time | **~2m 37s** | **~4m 30s** | **~59s** | **~4m 27s** |
+| Files landed in the target directory | **Yes** | **Yes** | **Yes** | **No** |
 
-### Conversation shape (message counts)
+OpenCode completed this recorded run with the **fewest calls, tokens, and elapsed time**. That is an observation about this specific workload, not a general ranking: the runs were not repeated enough to establish a benchmark. The useful engineering conclusion is narrower—when a task requires **dozens of tool rounds**, prompt construction and tool-selection behavior compound on every model call.
 
-"Total tokens" hides an important second dimension: how many separate messages actually built up in the model's context by the time each task finished. We counted every user/assistant/tool-result turn that ends up in the final request — pi, OpenCode, and Hermes all converge on the identical shape (2 messages for a no-tool answer, 4 for a one-tool-call answer) despite being three unrelated codebases. DeepSeek Harness's count is structurally higher for two independent reasons at once: its 3 extra injected context messages (see the system-prompt table above), *and* the 3 tool calls the file-listing task needed instead of 1:
+DeepSeek Harness illustrates that compounding effect. Its trace recorded **48 bare `bash` invocations among 76 tool calls**, including exploration and shell-based file creation, rather than primarily using its structured write and edit tools. Hermes produced a more serious correctness failure: its final summary claimed success, but the generated files were found in the **user’s home directory rather than the requested test directory**. Each run otherwise produced the requested package and executed its tests.
 
-| | Pi | DeepSeek Harness | OpenCode | Hermes |
-|---|---|---|---|---|
-| Messages — math question | **2** | **5** | **2** | **2** |
-| Messages — file-listing question | **4** | **11** | **4** | **4** |
+## Following a complete TrueForge turn
 
-### Everything else, side by side
+TrueForge makes the abstract loop concrete because its local traces expose both model and tool events.
 
-| | Pi | DeepSeek Harness | OpenCode | Hermes |
-|---|---|---|---|---|
-| Default tool count | **4** | **25** | **11** | **~19** |
-| Hidden title-generation LLM call | No, in any run traced | **Yes, both runs traced** | **Yes, both runs traced** | Inconsistent (1 of 2 runs) |
-| Session storage format | Not directly inspected in this pass | zstd-compressed JSONL | SQLite (message + part tables) | SQLite, exportable via CLI |
-| Manual instrumentation needed to see everything | 6 source files | **0** — built-in log already complete | 1 call site (system prompt only) | **0** for content — full CLI export already complete |
-| Notable extra capability | — | Automatic large-output "spill" to file | Per-step git workspace snapshot | Persistent skills, offline prompt-size budget tool |
+### With sandboxing enabled
 
----
+For “List all files in this directory?” with sandboxing enabled, the first model call sees the request and the `exec` tool. TrueForge executes `ls -la` inside the session sandbox, appends the result to the conversation, and makes a second model call that turns the result into an answer.
 
-## What surprised us
+### With sandboxing disabled
 
-**Three of four harnesses spend an LLM call just to name your conversation.** dsh and OpenCode did this on both runs we traced for each; Hermes did it on one of two. Pi never did, in any run we traced. If you're being billed per token and per request, this is a real, if small, recurring cost that most users never see and most harnesses never disclose.
+With sandboxing disabled, the `exec` schema is absent from the model request. The same prompt therefore produces one model call and no tool event. The model cannot independently bypass that boundary; the harness owns the tool contract.
 
-**A single tool-design choice (recursive `glob` vs. polymorphic `read`) was the difference between 2 tool calls and 3, and a 33K-token task versus a 72K-token one.** DeepSeek Harness's `glob` tool did exactly what its own documentation said it would — the failure wasn't a bug, it was a tool whose default behavior didn't match the task at hand, and the model had to spend two extra round-trips discovering that.
+### Where the 22.6 seconds went
 
-**"Installed" doesn't always mean "editable."** OpenCode's global install is a compiled binary; editing the source and running `opencode` from your `PATH` silently does nothing. If you're trying to instrument or extend one of these tools, always confirm you're actually running from source before you start debugging why your changes "aren't working."
+For “What is the square of 13?”, the traced agent made **one model call**, used **no tool**, and completed in **2.21 seconds**.
 
-**A harness's own diagnostic tools can mislead you if you don't know what they're measuring.** Hermes's `prompt-size` command reported a number nearly 7x larger than what was actually sent, because it measures a worst-case budget, not the real payload. Always cross-check a self-reported number against the literal wire data when you can.
+For the sandbox-enabled directory request, the trace recorded:
 
-**The one real bug we found (Hermes's missing cwd fact) is exactly the kind of thing that's invisible until you trace it.** The model didn't crash, didn't error, didn't even hedge — it confidently answered a question about the wrong directory, and the only way to know was to read its own reasoning text against the actual system prompt content, side by side.
+<div class="trace-summary" aria-label="TrueForge directory-listing trace summary">
+  <div><span>Turn duration</span><code>22.60 s</code></div>
+  <div><span>LLM calls</span><code>2</code></div>
+  <div><span>Tool calls</span><code>1</code></div>
+  <div><span>Tool</span><code>exec(&quot;ls -la&quot;)</code></div>
+  <div><span>Tool boundary duration</span><code>16.37 s</code></div>
+  <div><span>First model call</span><code>3.51 s · first token 1.64 s</code></div>
+  <div><span>Second model call</span><code>2.70 s</code></div>
+</div>
 
----
+The trace attributes **16.37 seconds** to the tool boundary. That should not be read as the runtime of `ls` alone. Depending on the instrumentation, it may include sandbox provisioning, transport, queueing, or execution overhead. The available trace does not split that boundary more finely.
 
-## A harder test: does having a tool mean using it?
+That distinction is exactly why end-to-end tracing matters. A final answer cannot reveal whether a delay came from the model, sandbox setup, command execution, or a second reasoning pass.
 
-Everything above used two deliberately simple questions. To actually test the capability-vs-judgment distinction from earlier in this post, we gave all four harnesses a genuinely hard task — build a multi-file Python package (a state machine, two pluggable payment providers, two pluggable notifiers, a CLI, tests, packaging) — using the same model, the exact same prompt, in a clean directory for each. Recall that three of the four ship delegation/subagent tooling by default. This was the real test of whether that capability gets used once a task is hard enough to justify it, or whether every harness just runs the same plain loop from the top of this post regardless of what else is sitting in its toolbox.
+## Principles for building a trustworthy harness
 
-![Comparison diagram: three harnesses (DeepSeek Harness, OpenCode, Hermes) had delegation tools available by default; zero of them were actually invoked for the complex build task, all four solved it inside one flat loop instead.](images/capability-vs-usage.svg)
+1. **Make the execution contract explicit.** Hermes shows what happens when the working directory is ambiguous.
+2. **Expose tools intentionally.** The DeepSeek Harness trace shows how a broad decision surface can coincide with expensive intermediate work.
+3. **Return evidence in a usable form.** Running a tool is insufficient if its result is truncated, misplaced, or not carried into the next model call.
+4. **Trace the entire loop.** TrueForge’s 22.6-second turn cannot be understood from model latency alone.
+5. **Distinguish visible work from product work.** Title generation and other internal calls may be useful, but their cost should be observable.
+6. **Treat sandboxing as a capability boundary.** Isolation determines what actions the model can request and where they execute.
 
-*Every single harness solved the entire task inside one flat loop.* Zero delegation calls, across all three harnesses that had the tooling for it — the same ReAct-style pattern from the diagram at the top of this post, just repeated dozens of times instead of once or twice.
+A harness is not a decorative wrapper around an LLM. It is the system that gives a model a workspace, a memory, a set of actions, and an accountable execution loop. The better those boundaries are designed and traced, the more capable—and more trustworthy—the agent becomes.
 
-| | Pi | DeepSeek Harness | OpenCode | Hermes |
-|---|---|---|---|---|
-| LLM calls | 44 | 77 | **16** | 56 |
-| Tool calls | 43 | 76 | 29 | 55 |
-| Total tokens | 599,450 | **2,750,020** | **223,982** | 1,807,554 |
-| Wall-clock time | ~2m 37s | ~4m 30s | **~59s** | ~4m 27s |
-| Files landed in the right place? | ✅ | ✅ | ✅ | ❌ |
+## Methodology and sources
 
-*OpenCode finished in under a minute using roughly a twelfth of DeepSeek Harness's token spend, for an equivalent finished package* — the strongest evidence yet that call count, not per-call efficiency, is the dominant cost lever once a task runs long. DeepSeek Harness's own tool log explains why: 48 of its 76 tool calls were bare `bash` commands (exploring, `mkdir -p`, shell-based file writes) rather than its own structured `write`/`edit` tools — a shell-heavy style that needed nearly twice pi's turn count for the same deliverable, letting its already-large system prompt (26,305 chars) compound across 77 resends instead of a handful.
+### Controlled comparison
 
-!!! danger "A second, more serious Hermes bug"
-    Hermes's own final summary said the package was "fully implemented," listing file paths matching the request exactly — and none of it was true. The files actually landed in the **user's home directory**, not the target folder, despite the session's own recorded metadata listing the correct path. Same class of bug as the missing-cwd issue documented earlier in this post, now confirmed a second time on a much bigger task — and the sharpest illustration in this whole post of why "the model said it worked" is never sufficient on its own.
+Pi, DeepSeek Harness, OpenCode, and Hermes were exercised with the same endpoint and the same two prompts. Prompt size is reported in characters because that is what the local capture recorded; request cost is reported in tokens because that is what the model usage data exposed. Tool schemas are included in the constructed prompt context where the harness provided them.
 
-!!! note "One honest note on our own methodology"
-    Midway through this test we found a mistake in our own setup, not a harness bug: a shell flag change accidentally pointed DeepSeek Harness at its own source repository instead of the clean test folder. We caught it via `git status` before anything was overwritten, moved the output to the correct location, and are disclosing it because it explains why that trace briefly shows the model exploring an unrelated codebase before it starts — that's on us, not on the harness.
+The available captures do not establish every experimental variable. They do not provide a complete record of decoding settings, cached-token treatment, or repeated latency trials. “Total tokens” refers to the recorded model usage for the named run, and “tool call” means one harness-mediated invocation recorded in that run. The results should therefore be read as source-backed implementation observations, not a statistically complete performance study.
 
-All four packages were otherwise complete and functionally equivalent — every required file present, tests genuinely executed (not just claimed), and all four independently converged on nearly identical code: an `Enum`-based state machine, a `VALID_TRANSITIONS` dict, `OrderStateError`. Where these harnesses actually differ, once more, is *process* — not code quality.
+### Sustained coding task
 
----
+The longer package-building task used the same endpoint and prompt in separate test directories. A setup error briefly directed DeepSeek Harness to its own source repository; it was caught through `git status` before anything was overwritten, and the output was moved to the intended test directory. The trace therefore includes a short period of unrelated repository exploration, which is a setup artifact rather than a DeepSeek Harness behavior claim.
 
-## Takeaways
+### TrueForge local trace
 
-1. **Every agent harness, regardless of language or architecture, implements the same underlying loop**: LLM call → tool-call check → execute tool for real → feed result back → repeat until the model stops asking for tools. That convergence held across a monolith-with-extensions design, an all-plugin design, a client/server design, and a memory-first design.
-2. **Observability is a design choice a team makes, not something you get for free.** dsh's contribution guidelines treat "everything the model sees must be logged" as a hard rule, and it showed — zero instrumentation needed. Pi required the most manual work of the four. That's a real, measurable difference in how much a team invested in making their own system debuggable.
-3. **Default tool catalogs are a genuine cost lever**, not just a feature checklist. Going from 4 tools to 25 tools measurably inflates every single request, whether or not those extra tools ever get used in a given conversation.
-4. **Correctness and efficiency are separate axes.** The harness that used the fewest tool calls (Hermes, tied with pi at 1) produced the wrong answer. Don't judge a harness by call count alone — check what actually happened.
-5. **Tracing at the source level catches real bugs that black-box testing won't.** We didn't set out to find the Hermes cwd bug — it fell out of doing the same rigorous trace-and-verify pass we'd already done for the other three.
-6. **A harness having a tool doesn't mean the model will use it.** Three of four harnesses shipped subagent/delegation tooling by default; on a task hard enough to justify it, zero used it. Capability and judgment are genuinely separate questions — confirmed with real numbers this time, not just argued from principle.
-
-**If you're actually choosing one right now**: pi if you want the smallest surface area and don't mind doing your own tracing when something's unclear; OpenCode if raw token/time efficiency matters most, as long as you're fine running from source rather than the compiled global install; DeepSeek Harness if deep built-in observability matters more than raw cost and you can tolerate a heavier default tool catalog; and hold off on Hermes for anything filesystem-sensitive until its cwd-tracking bug is fixed — its own "it worked" summaries cannot currently be trusted at face value.
-
----
-
-## What's next
-
-This series started as a simple question — "what actually happens when I hit enter?" — and turned into a real, reproducible dataset across four structurally different open-source agent harnesses. If you build or evaluate coding agents, the honest takeaway is: don't trust a harness's documentation *or* its own diagnostic tools at face value — trace the wire payload, read the session log, and verify the number against the byte count yourself. Every finding in this post came from doing exactly that.
-
-One open question from this pass is still unresolved: why did Hermes's title-generation call fire on one run and not the other? That's worth a follow-up on its own. If this kind of hands-on systems tracing is useful to you, follow along for what comes next.
-
----
+TrueForge behavior was verified from its local source and recorded local turn traces. Its sandbox-enabled turns include `exec`; sandbox-disabled turns omit it from the model request. Because the trace used a separately configured endpoint, its timings explain the TrueForge flow rather than serving as a cross-provider benchmark.
 
 ## References
 
-- [pi](https://pi.dev) — [github.com/earendil-works/pi-mono](https://github.com/earendil-works/pi-mono)
-- [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)
-- [OpenCode](https://opencode.ai) — [github.com/anomalyco/opencode](https://github.com/anomalyco/opencode)
-- [Hermes Agent](https://hermes-agent.nousresearch.com) — [github.com/NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent)
-- Yao et al., 2022 — [ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629) — the paper behind the reasoning-then-acting loop pattern every harness in this post converges on
-- [Cordis](https://github.com/cordiverse/cordis) and its accompanying paper, [*A Programming Paradigm for Spatiotemporal Composability*](https://github.com/cordiverse/paper) — the plugin framework DeepSeek Harness is built on
+- [Pi](https://pi.dev) and its [source repository](https://github.com/earendil-works/pi)
+- [DeepSeek Harness source repository](https://github.com/deepseek-ai/deepseek-harness)
+- [OpenCode](https://opencode.ai) and its [source repository](https://github.com/anomalyco/opencode)
+- [Hermes Agent](https://hermes-agent.nousresearch.com) and its [source repository](https://github.com/NousResearch/hermes-agent)
+- [TrueForge source repository](https://github.com/truefoundry/trueforge)
+- Yao et al., [ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629), for the reasoning-and-action loop discussed in this article
+- [Cordis](https://github.com/cordiverse/cordis), the plugin framework used by DeepSeek Harness

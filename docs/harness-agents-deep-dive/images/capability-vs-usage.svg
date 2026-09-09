@@ -14,6 +14,7 @@
 text { font-family: "Kalam", sans-serif; fill: #2e2a3d; }
 </style>
 </defs>
+<style>rect { stroke: #cbbaff !important; stroke-width: 1.25 !important; }</style>
 <rect width="900" height="620" fill="#f6f4fb" rx="14"/>
 <text x="450" y="46" text-anchor="middle" font-size="26" font-weight="700">Three harnesses had delegation tools.</text>
 <text x="450" y="78" text-anchor="middle" font-size="26" font-weight="700" fill="#e8935a">Zero used them.</text>

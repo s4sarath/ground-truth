@@ -1,47 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="480" viewBox="0 0 900 480">
-<rect width="900" height="480" fill="#fcfcfb"/>
-<text x="450" y="36" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="22" font-weight="700" fill="#0b0b0b">The Harness Loop — the one thing every agent harness has in common</text>
-<text x="450" y="58" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" fill="#52514e">pi, DeepSeek Harness, OpenCode, and Hermes all implement this exact loop underneath very different architectures</text>
-<defs>
-<marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-<polygon points="0 0, 10 3.5, 0 7" fill="#52514e"/>
-</marker>
-</defs>
-<rect x="30" y="110" width="140" height="70" rx="10" ry="10" fill="#52514e"/>
-<text x="100.0" y="141.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="700" fill="#ffffff">You</text>
-<text x="100.0" y="161.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#ffffff" opacity="0.85">type a prompt</text>
-<rect x="230" y="110" width="190" height="70" rx="10" ry="10" fill="#2a78d6"/>
-<text x="325.0" y="141.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="700" fill="#ffffff">Harness</text>
-<text x="325.0" y="161.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#ffffff" opacity="0.85">adds system prompt
-+ tool list</text>
-<rect x="480" y="110" width="160" height="70" rx="10" ry="10" fill="#eb6834"/>
-<text x="560.0" y="141.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="700" fill="#ffffff">LLM</text>
-<text x="560.0" y="161.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#ffffff" opacity="0.85">reasons over the
-full context</text>
-<line x1="170" y1="145" x2="230" y2="145" stroke="#52514e" stroke-width="2" marker-end="url(#arrowhead)"/>
-<text x="200.0" y="137.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#52514e">prompt</text>
-<line x1="420" y1="145" x2="480" y2="145" stroke="#52514e" stroke-width="2" marker-end="url(#arrowhead)"/>
-<text x="450.0" y="137.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#52514e">request</text>
-<polygon points="780.0,105 860,145.0 780.0,185 700,145.0" fill="#1baf7a"/>
-<text x="780.0" y="141.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#ffffff">Tool call?</text>
-<text x="780.0" y="159.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="10" fill="#ffffff">stop-reason check</text>
-<line x1="640" y1="145" x2="700" y2="145" stroke="#52514e" stroke-width="2" marker-end="url(#arrowhead)"/>
-<rect x="700" y="260" width="160" height="70" rx="10" ry="10" fill="#eb6834"/>
-<text x="780.0" y="291.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="700" fill="#ffffff">Tool executes</text>
-<text x="780.0" y="311.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#ffffff" opacity="0.85">real command on
-your machine</text>
-<path d="M 780 260 L 780 220" fill="none" stroke="#52514e" stroke-width="2" marker-end="url(#arrowhead)"/>
-<text x="795" y="240" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#52514e">YES</text>
-<path d="M 700 295 Q 500 320 480 180" fill="none" stroke="#52514e" stroke-width="2" marker-end="url(#arrowhead)"/>
-<text x="560" y="330" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#52514e">result fed back — loop again</text>
-<rect x="700" y="30" width="160" height="60" rx="10" ry="10" fill="#2a78d6"/>
-<text x="780.0" y="56.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="15" font-weight="700" fill="#ffffff">Final answer</text>
-<text x="780.0" y="76.0" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="11" fill="#ffffff" opacity="0.85">stopReason: "stop"</text>
-<path d="M 780 105 L 780 90" fill="none" stroke="#52514e" stroke-width="2" marker-end="url(#arrowhead)"/>
-<text x="810" y="80" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#52514e">NO</text>
-<path d="M 700 55 Q 400 15 200 145" fill="none" stroke="#52514e" stroke-width="2" marker-end="url(#arrowhead)"/>
-<text x="450" y="12" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#52514e">answer shown to you</text>
-<rect x="30" y="400" width="840" height="60" rx="8" fill="none" stroke="#c3c2b7" stroke-width="1"/>
-<text x="450" y="425" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="13" font-weight="700" fill="#0b0b0b">The loop repeats as many times as the model needs tools.</text>
-<text x="450" y="445" text-anchor="middle" font-family="Helvetica,Arial,sans-serif" font-size="12" fill="#52514e">One question needed 1 loop in our tests. Another needed up to 4 — same model, different harness design.</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="620" viewBox="0 0 1100 620" role="img" aria-labelledby="title description">
+  <title id="title">The coding-agent execution loop</title>
+  <desc id="description">A user request goes to a harness, then an LLM. When the LLM needs a tool, the harness executes it and returns the result to the LLM. Otherwise the LLM produces a final answer.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#625b75"/></marker>
+  </defs>
+  <rect width="1100" height="620" rx="22" fill="#fffaf8" stroke="#cbbaff" stroke-width="2"/>
+  <text x="550" y="62" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif" font-size="30" font-weight="650" fill="#1d1d1f">The coding-agent execution loop</text>
+  <text x="550" y="94" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif" font-size="17" fill="#6e6e73">The harness closes the gap between a model request and an observed result.</text>
+  <text x="72" y="154" font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif" font-size="15" font-weight="600" fill="#6e56cf">1. PREPARE CONTEXT</text>
+  <text x="72" y="362" font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif" font-size="15" font-weight="600" fill="#6e56cf">2. EXECUTE ONLY WHEN NEEDED</text>
+  <g font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif" text-anchor="middle">
+    <rect x="72" y="190" width="155" height="92" rx="16" fill="#f1eff7" stroke="#cbbaff" stroke-width="2"/>
+    <text x="149" y="232" font-size="22" font-weight="650" fill="#1d1d1f">You</text><text x="149" y="258" font-size="15" fill="#6e6e73">describe a task</text>
+    <rect x="300" y="190" width="205" height="92" rx="16" fill="#eeeaff" stroke="#a993ff" stroke-width="2"/>
+    <text x="402" y="232" font-size="22" font-weight="650" fill="#1d1d1f">Harness</text><text x="402" y="258" font-size="15" fill="#6e6e73">adds context and tools</text>
+    <rect x="578" y="190" width="168" height="92" rx="16" fill="#edf4ff" stroke="#90b8ff" stroke-width="2"/>
+    <text x="662" y="232" font-size="22" font-weight="650" fill="#1d1d1f">LLM</text><text x="662" y="258" font-size="15" fill="#6e6e73">chooses a next step</text>
+    <path d="M810 190 L885 236 L810 282 L735 236 Z" fill="#ecf8f1" stroke="#91d3b0" stroke-width="2"/>
+    <text x="810" y="230" font-size="17" font-weight="650" fill="#1d1d1f">Needs a</text><text x="810" y="252" font-size="17" font-weight="650" fill="#1d1d1f">tool?</text>
+    <rect x="916" y="190" width="145" height="92" rx="16" fill="#eef5ff" stroke="#90b8ff" stroke-width="2"/>
+    <text x="988" y="232" font-size="20" font-weight="650" fill="#1d1d1f">Answer</text><text x="988" y="258" font-size="15" fill="#6e6e73">shown to you</text>
+    <rect x="710" y="405" width="200" height="94" rx="16" fill="#fff0e9" stroke="#efaf88" stroke-width="2"/>
+    <text x="810" y="446" font-size="22" font-weight="650" fill="#1d1d1f">Tool execution</text><text x="810" y="472" font-size="15" fill="#6e6e73">command runs in context</text>
+  </g>
+  <g fill="none" stroke="#625b75" stroke-width="2.5" marker-end="url(#arrow)">
+    <path d="M227 236 H300"/><path d="M505 236 H578"/><path d="M746 236 H765"/>
+    <path d="M855 236 H916"/><path d="M810 282 V405"/>
+    <path d="M710 452 C620 530 540 492 578 282"/>
+  </g>
+  <g font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif" font-size="14" font-weight="600" fill="#625b75">
+    <text x="878" y="219">NO</text><text x="829" y="340">YES</text><text x="526" y="520">tool result returns to the model</text>
+  </g>
+  <line x1="72" y1="330" x2="1028" y2="330" stroke="#e2d9ff" stroke-width="1"/>
+  <text x="550" y="570" text-anchor="middle" font-family="-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif" font-size="16" fill="#6e6e73">A model can request an action. The harness is the part that performs it and returns the evidence.</text>
 </svg>
